@@ -38,12 +38,13 @@ Lab9HMain.o: ../Lab9HMain.cpp \
  C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/inc/Timer.h \
  C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/inc/SlidePot.h \
  C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/inc/DAC5.h \
- C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/ECE319K_Lab9H/SmallFont.h \
- C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/ECE319K_Lab9H/LED.h \
- C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/ECE319K_Lab9H/Switch.h \
- C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/ECE319K_Lab9H/Sound.h \
- C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/ECE319K_Lab9H/images/images.h \
- C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/ECE319K_Lab9H/Key.h
+ C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/PianoTiles/SmallFont.h \
+ C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/PianoTiles/LED.h \
+ C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/PianoTiles/Switch.h \
+ C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/PianoTiles/Sound.h \
+ C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/PianoTiles/images/images.h \
+ C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/PianoTiles/Key.h \
+ C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/PianoTiles/Row.h
 
 C:/ti/mspm0_sdk_1_10_01_05/source/ti/devices/msp/msp.h:
 
@@ -119,14 +120,16 @@ C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/inc/SlidePot.h:
 
 C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/inc/DAC5.h:
 
-C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/ECE319K_Lab9H/SmallFont.h:
+C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/PianoTiles/SmallFont.h:
 
-C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/ECE319K_Lab9H/LED.h:
+C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/PianoTiles/LED.h:
 
-C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/ECE319K_Lab9H/Switch.h:
+C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/PianoTiles/Switch.h:
 
-C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/ECE319K_Lab9H/Sound.h:
+C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/PianoTiles/Sound.h:
 
-C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/ECE319K_Lab9H/images/images.h:
+C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/PianoTiles/images/images.h:
 
-C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/ECE319K_Lab9H/Key.h:
+C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/PianoTiles/Key.h:
+
+C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/PianoTiles/Row.h:

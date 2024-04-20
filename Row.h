@@ -19,11 +19,16 @@ class Row
 {
 public:
     Row(uint8_t keyColors, int16_t rowY);
+    void drawRow();
+    void moveRow(int16_t x, int16_t y);
+    void setOnScreen();
+    void setOffScreen();
+
     virtual ~Row();
 
 private:
     uint8_t keyColors; //bits will have 1=black, 0=white, 4 bits used for 4 switches
-    Key* keys;
+    Key keys[4];
     int16_t rowY;
     uint16_t rowHeight;
     bool onScreen;

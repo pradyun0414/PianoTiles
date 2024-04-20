@@ -31,8 +31,8 @@ Sound.o: ../Sound.cpp \
  C:/ti/mspm0_sdk_1_10_01_05/source/ti/devices/msp/peripherals/m0p/hw_debugss.h \
  C:/ti/mspm0_sdk_1_10_01_05/source/ti/devices/msp/peripherals/m0p/hw_sysctl.h \
  C:/ti/mspm0_sdk_1_10_01_05/source/ti/devices/msp/peripherals/m0p/sysctl/hw_sysctl_mspm0g1x0x_g3x0x.h \
- C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/ECE319K_Lab9H/Sound.h \
- C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/ECE319K_Lab9H/sounds/sounds.h \
+ C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/PianoTiles/Sound.h \
+ C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/PianoTiles/sounds/sounds.h \
  C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/inc/DAC5.h \
  C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/inc/Timer.h
 
@@ -96,9 +96,9 @@ C:/ti/mspm0_sdk_1_10_01_05/source/ti/devices/msp/peripherals/m0p/hw_sysctl.h:
 
 C:/ti/mspm0_sdk_1_10_01_05/source/ti/devices/msp/peripherals/m0p/sysctl/hw_sysctl_mspm0g1x0x_g3x0x.h:
 
-C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/ECE319K_Lab9H/Sound.h:
+C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/PianoTiles/Sound.h:
 
-C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/ECE319K_Lab9H/sounds/sounds.h:
+C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/PianoTiles/sounds/sounds.h:
 
 C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/inc/DAC5.h:
 

@@ -214,6 +214,21 @@ Key::Key(int16_t x, int16_t y, uint16_t width, uint16_t height, const unsigned s
 
     }
 
+Key::Key(){
+    this->x = 0;
+    this->y = 0;
+    this-> width = 0;
+    this->height = 0;
+    this->keyArray = blank_white;
+}
+
+void Key::initializeKey(int16_t x, int16_t y, uint16_t width, uint16_t height, const unsigned short* keyArray){
+    this->x = x;
+    this->y = y;
+    this-> width = width;
+    this->height = height;
+    this->keyArray = keyArray;
+}
 
 void Key::drawKey(){
     ST7735_DrawBitmap(x, y + height, keyArray, width, height);

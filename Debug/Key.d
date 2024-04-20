@@ -1,7 +1,7 @@
 # FIXED
 
 Key.o: ../Key.cpp \
- C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/ECE319K_Lab9H/Key.h \
+ C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/PianoTiles/Key.h \
  C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/inc/ST7735.h \
  C:/ti/mspm0_sdk_1_10_01_05/source/ti/devices/msp/msp.h \
  C:/ti/mspm0_sdk_1_10_01_05/source/ti/devices/DeviceFamily.h \
@@ -34,7 +34,7 @@ Key.o: ../Key.cpp \
  C:/ti/mspm0_sdk_1_10_01_05/source/ti/devices/msp/peripherals/m0p/hw_sysctl.h \
  C:/ti/mspm0_sdk_1_10_01_05/source/ti/devices/msp/peripherals/m0p/sysctl/hw_sysctl_mspm0g1x0x_g3x0x.h
 
-C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/ECE319K_Lab9H/Key.h:
+C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/PianoTiles/Key.h:
 
 C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/inc/ST7735.h:
 

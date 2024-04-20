@@ -17,13 +17,15 @@ class Key
 {
 public:
     Key(int16_t x, int16_t y, uint16_t width, uint16_t height, const unsigned short* keyArray);
-
+    Key();
 
     uint16_t getX();
     uint16_t getY();
     uint16_t getWidth();
     uint16_t getHeight();
     short* getArray();
+
+    void initializeKey(int16_t x, int16_t y, uint16_t width, uint16_t height, const unsigned short* keyArray);
 
     void moveKey(int16_t x, int16_t y);
     void drawKey();

@@ -20,16 +20,37 @@ Row::Row(uint8_t keyColors, int16_t rowY)
     this->keyColors = keyColors;
     this->rowY = rowY;
 
-    keys = (Key*) malloc(sizeof(Key)*4);
 
-    for(int i = 0; i < 4; i++){
+
+    for(uint8_t i = 0; i < 4; i++){
         uint8_t adjustedVal = (keyColors >> (3 - i)) & 0x01;
-        if(adjustedVal)
-            keys[i] = Key(i * 32, rowY, 32, 30, Key::black_key);
+        if(adjustedVal == 1)
+            keys[i].initializeKey(i * 32, rowY, 32, 30, Key::black_key);
         else
-            keys[i] = Key(i * 32, rowY, 32, 30, Key::white_key);
+            keys[i].initializeKey(i * 32, rowY, 32, 30, Key::white_key);
     }
 
+}
+
+void Row::drawRow(){
+    for(uint8_t i = 0; i < 4; i++){
+        keys[i].drawKey();
+    }
+}
+
+void Row::moveRow(int16_t x, int16_t y){
+    rowY += y;
+    for(uint8_t i = 0; i < 4; i++){
+        keys[i].moveKey(x, y);
+    }
+}
+
+void Row::setOnScreen(){
+    onScreen = true;
+}
+
+void Row::setOffScreen(){
+    onScreen = false;
 }
 
 Row::~Row()

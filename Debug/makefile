@@ -29,7 +29,7 @@ ORDERED_OBJS += \
 "./ticlang/startup_mspm0g3507_ticlang.o" \
 "../mspm0g3507.cmd" \
 $(GEN_CMDS__FLAG) \
--Wl,-l"C:/ti/mspm0_sdk_1_10_01_05/source/ti/driverlib/lib/ticlang/m0p/mspm0g1x0x_g3x0x/driverlib.a" \
+-Wl,-l"C:/ti/mspm0_sdk_1_20_01_06/source/ti/driverlib/lib/ticlang/m0p/mspm0g1x0x_g3x0x/driverlib.a" \
 -Wl,-llibc.a \
 
 -include ../makefile.init
@@ -143,21 +143,21 @@ endif
 
 # Add inputs and outputs from these tool invocations to the build variables 
 EXE_OUTPUTS += \
-ECE319K_Lab9H.out 
+PianoTiles.out 
 
 EXE_OUTPUTS__QUOTED += \
-"ECE319K_Lab9H.out" 
+"PianoTiles.out" 
 
 
 # All Target
 all: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
-	@$(MAKE) --no-print-directory -Onone "ECE319K_Lab9H.out"
+	@$(MAKE) --no-print-directory -Onone "PianoTiles.out"
 
 # Tool invocations
-ECE319K_Lab9H.out: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
+PianoTiles.out: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
 	@echo 'Building target: "$@"'
 	@echo 'Invoking: Arm Linker'
-	"C:/ti/ccs1260/ccs/tools/compiler/ti-cgt-armllvm_3.2.1.LTS/bin/tiarmclang.exe" -march=thumbv6m -mcpu=cortex-m0plus -mfloat-abi=soft -mlittle-endian -mthumb -O0 -D__MSPM0G3507__ -gdwarf-3 -Wl,-m"ECE319K_Lab9H.map" -Wl,--heap_size=512 -Wl,--stack_size=512 -Wl,-i"C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/ECE319K_Lab9H/Debug/syscfg" -Wl,-i"C:/ti/ccs1260/ccs/tools/compiler/ti-cgt-armllvm_3.2.1.LTS/lib" -Wl,--diag_wrap=off -Wl,--display_error_number -Wl,--warn_sections -Wl,--xml_link_info="ECE319K_Lab9H_linkInfo.xml" -Wl,--rom_model -o "ECE319K_Lab9H.out" $(ORDERED_OBJS)
+	"C:/ti/ccs1260/ccs/tools/compiler/ti-cgt-armllvm_3.2.1.LTS/bin/tiarmclang.exe" -march=thumbv6m -mcpu=cortex-m0plus -mfloat-abi=soft -mlittle-endian -mthumb -O0 -D__MSPM0G3507__ -gdwarf-3 -Wl,-m"PianoTiles.map" -Wl,--heap_size=512 -Wl,--stack_size=512 -Wl,-i"C:/Users/Prady/OneDrive/Desktop/MSPM0_ValvanoWare/PianoTiles/Debug/syscfg" -Wl,-i"C:/ti/ccs1260/ccs/tools/compiler/ti-cgt-armllvm_3.2.1.LTS/lib" -Wl,--diag_wrap=off -Wl,--display_error_number -Wl,--warn_sections -Wl,--xml_link_info="PianoTiles_linkInfo.xml" -Wl,--rom_model -o "PianoTiles.out" $(ORDERED_OBJS)
 	@echo 'Finished building target: "$@"'
 	@echo ' '
 

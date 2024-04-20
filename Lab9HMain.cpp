@@ -20,6 +20,9 @@
 #include "Sound.h"
 #include "images/images.h"
 #include "Key.h"
+#include "Row.h"
+
+
 extern "C" void __disable_irq(void);
 extern "C" void __enable_irq(void);
 extern "C" void TIMG12_IRQHandler(void);
@@ -233,28 +236,57 @@ int main(void){ // main1
 //  ST7735_DrawBitmap(32, 50, white_key, 32, 30);
 //  ST7735_DrawBitmap(64, 50, black_key, 32, 30);
 //  ST7735_DrawBitmap(96, 50, white_key, 32, 30);
-  //Key tempKey = Key(0, -12, 32, 30, Key::white_key);
-  //tempKey.drawKey();
-//  Clock_Delay(T33ms) ;
-//  tempKey.moveKey(0, 10);
-//  Clock_Delay(T33ms) ;
-//  tempKey.moveKey(0, 10);
-//  Clock_Delay(T33ms) ;
-//  tempKey.moveKey(0, 10);
-//  Clock_Delay(T33ms) ;
-//  tempKey.moveKey(0, 10);
-//  Clock_Delay(T33ms) ;
-//  tempKey.moveKey(0, 10);
-//  Clock_Delay(T33ms) ;
-//  tempKey.moveKey(0, 10);
-//  Clock_Delay(T33ms) ;
-//  tempKey.moveKey(0, 10);
-//  Clock_Delay(T33ms) ;
-//  tempKey.moveKey(0, 10);
-//  Clock_Delay(T33ms) ;
-//  tempKey.moveKey(0, 10);
-//  Clock_Delay(T33ms) ;
-//  tempKey.moveKey(0, 10);
+
+
+  Row tempRow = Row(15, 20);
+  tempRow.drawRow();
+  Clock_Delay(T33ms) ;
+  tempRow.moveRow(0, 2);
+  Clock_Delay(T33ms) ;
+  tempRow.moveRow(0, 2);
+  Clock_Delay(T33ms) ;
+  tempRow.moveRow(0, 2);
+  Clock_Delay(T33ms) ;
+  tempRow.moveRow(0, 2);
+  Clock_Delay(T33ms) ;
+  tempRow.moveRow(0, 2);
+  Clock_Delay(T33ms) ;
+  tempRow.moveRow(0, 2);
+  Clock_Delay(T33ms) ;
+  tempRow.moveRow(0, 2);
+  Clock_Delay(T33ms) ;
+  tempRow.moveRow(0, 2);
+  Clock_Delay(T33ms) ;
+  tempRow.moveRow(0, 2);
+  Clock_Delay(T33ms) ;
+  tempRow.moveRow(0, 2);
+  Clock_Delay(T33ms) ;
+  tempRow.moveRow(0, 2);
+
+  //  Key tempKey = Key(0, -12, 32, 30, Key::white_key);
+  //  tempKey.drawKey();
+  //  while(1){
+  //      Clock_Delay(T33ms) ;
+  //        tempKey.moveKey(0, 10);
+  //        Clock_Delay(T33ms) ;
+  //        tempKey.moveKey(0, 10);
+  //        Clock_Delay(T33ms) ;
+  //        tempKey.moveKey(0, 10);
+  //        Clock_Delay(T33ms) ;
+  //        tempKey.moveKey(0, 10);
+  //        Clock_Delay(T33ms) ;
+  //        tempKey.moveKey(0, 10);
+  //        Clock_Delay(T33ms) ;
+  //        tempKey.moveKey(0, 10);
+  //        Clock_Delay(T33ms) ;
+  //        tempKey.moveKey(0, 10);
+  //        Clock_Delay(T33ms) ;
+  //        tempKey.moveKey(0, 10);
+  //        Clock_Delay(T33ms) ;
+  //        tempKey.moveKey(0, 10);
+  //        Clock_Delay(T33ms) ;
+  //        tempKey.moveKey(0, -90);
+  //  }
 
 
 //  for(int myPhrase=0; myPhrase<= 2; myPhrase++){
