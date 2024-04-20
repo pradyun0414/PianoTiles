@@ -162,7 +162,8 @@ extern "C" void TIMG12_IRQHandler(void);
 
 uint8_t song[] = {15, 3, 5, 0, 7, 8, 11, 14, 15, 14, 11, 5, 10, 12, 1, 10, 7, 0, 13, 8, 4, 6, 9, 4, 10, 14, 5, 5, 1, 0, 8, 7, 13, 1, 10, 4, 12, 14, 8, 1, 0, 10, 6, 10, 11, 12, 7, 6, 15, 9};
 uint16_t songLength = 50;
-uint16_t songIndex = 0;
+uint16_t topRow = 0; //topRow is a later note, so higher index
+uint16_t bottomRow = 0;
 Row rowArray[50];
 
 
@@ -232,10 +233,56 @@ void generateNewRow(){
 }
 
 void generateRowArray(){
-
+    for(int i = 0; i < songLength; i++){
+        rowArray[i].initializeRow(song[i], 0);
+    }
 }
 
+void startGameRows(){
+    rowArray[0].setOnScreen();
+    rowArray[0].setRowY(110);
+    rowArray[0].drawRow();
 
+    rowArray[1].setOnScreen();
+    rowArray[1].setRowY(80);
+    rowArray[0].drawRow();
+
+
+    rowArray[2].setOnScreen();
+    rowArray[2].setRowY(50);
+    rowArray[0].drawRow();
+
+    rowArray[3].setOnScreen();
+    rowArray[3].setRowY(20);
+    rowArray[0].drawRow();
+
+
+    bottomRow = 0;
+    topRow = 3;
+}
+
+void adjustVisible(){
+    if(rowArray[bottomRow].getRowY() > 110){
+        rowArray[bottomRow].setOffScreen();
+        rowArray[bottomRow].clearRow();
+        bottomRow++;
+    }
+
+    if(rowArray[topRow].getRowY() > 20){
+        rowArray[topRow + 1].setOnScreen();
+        rowArray[topRow + 1].setRowY(rowArray[topRow].getRowY() - 30);
+        topRow++;
+    }
+}
+
+void moveRows(int16_t y){
+    for(uint8_t i = 0; i < songLength; i++){
+        if(rowArray[i].getDisplayState()){
+            rowArray[i].moveRow(y);
+        }
+    }
+    adjustVisible();
+}
 
 
 
@@ -252,17 +299,20 @@ int main(void){ // main1
 //  ST7735_DrawBitmap(32, 50, white_key, 32, 30);
 //  ST7735_DrawBitmap(64, 50, black_key, 32, 30);
 //  ST7735_DrawBitmap(96, 50, white_key, 32, 30);
-
+  generateRowArray();
+  startGameRows();
 
   while(1){
-      Row tempRow = Row(11, 20);
-      tempRow.drawRow();
+      moveRows(2);
+      Clock_Delay(T33ms) ;
+//      Row tempRow = Row(11, 20);
+//      tempRow.drawRow();
 
-      for(int i = 0; i < 50; i++){
-          Clock_Delay(T33ms) ;
-          tempRow.moveRow(2);
-      }
-      tempRow.clearRow();
+//      for(int i = 0; i < 50; i++){
+//          Clock_Delay(T33ms) ;
+//          tempRow.moveRow(2);
+//      }
+//      tempRow.clearRow();
   }
 
 //  Row tempRow = Row(11, 20);
