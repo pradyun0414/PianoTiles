@@ -27,8 +27,10 @@ public:
 
     void initializeKey(int16_t x, int16_t y, uint16_t width, uint16_t height, const unsigned short* keyArray);
 
-    void moveKey(int16_t x, int16_t y);
+    void moveKey(int16_t y);
     void drawKey();
+    void clearKey();
+
     static const unsigned short white_key[];
     static const unsigned short black_key[];
     static const unsigned short blank_white[];
@@ -45,7 +47,6 @@ private:
 
     //static const unsigned short* blank_white;
 
-    void clearKey();
 };
 
 #endif /* KEY_H_ */

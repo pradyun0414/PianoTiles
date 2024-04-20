@@ -160,8 +160,10 @@ extern "C" void TIMG12_IRQHandler(void);
 //
 //};
 
-
-
+uint8_t song[] = {15, 3, 5, 0, 7, 8, 11, 14, 15, 14, 11, 5, 10, 12, 1, 10, 7, 0, 13, 8, 4, 6, 9, 4, 10, 14, 5, 5, 1, 0, 8, 7, 13, 1, 10, 4, 12, 14, 8, 1, 0, 10, 6, 10, 11, 12, 7, 6, 15, 9};
+uint16_t songLength = 50;
+uint16_t songIndex = 0;
+Row rowArray[50];
 
 
 // ****note to ECE319K students****
@@ -223,6 +225,20 @@ const char *Phrases[3][4]={
   {Goodbye_English,Goodbye_Spanish,Goodbye_Portuguese,Goodbye_French},
   {Language_English,Language_Spanish,Language_Portuguese,Language_French}
 };
+
+
+void generateNewRow(){
+
+}
+
+void generateRowArray(){
+
+}
+
+
+
+
+
 // use main1 to observe special characters
 int main(void){ // main1
     char l;
@@ -238,30 +254,41 @@ int main(void){ // main1
 //  ST7735_DrawBitmap(96, 50, white_key, 32, 30);
 
 
-  Row tempRow = Row(15, 20);
-  tempRow.drawRow();
-  Clock_Delay(T33ms) ;
-  tempRow.moveRow(0, 2);
-  Clock_Delay(T33ms) ;
-  tempRow.moveRow(0, 2);
-  Clock_Delay(T33ms) ;
-  tempRow.moveRow(0, 2);
-  Clock_Delay(T33ms) ;
-  tempRow.moveRow(0, 2);
-  Clock_Delay(T33ms) ;
-  tempRow.moveRow(0, 2);
-  Clock_Delay(T33ms) ;
-  tempRow.moveRow(0, 2);
-  Clock_Delay(T33ms) ;
-  tempRow.moveRow(0, 2);
-  Clock_Delay(T33ms) ;
-  tempRow.moveRow(0, 2);
-  Clock_Delay(T33ms) ;
-  tempRow.moveRow(0, 2);
-  Clock_Delay(T33ms) ;
-  tempRow.moveRow(0, 2);
-  Clock_Delay(T33ms) ;
-  tempRow.moveRow(0, 2);
+  while(1){
+      Row tempRow = Row(11, 20);
+      tempRow.drawRow();
+
+      for(int i = 0; i < 50; i++){
+          Clock_Delay(T33ms) ;
+          tempRow.moveRow(2);
+      }
+      tempRow.clearRow();
+  }
+
+//  Row tempRow = Row(11, 20);
+//  tempRow.drawRow();
+//  Clock_Delay(T33ms) ;
+//  tempRow.moveRow(0, 2);
+//  Clock_Delay(T33ms) ;
+//  tempRow.moveRow(0, 2);
+//  Clock_Delay(T33ms) ;
+//  tempRow.moveRow(0, 2);
+//  Clock_Delay(T33ms) ;
+//  tempRow.moveRow(0, 2);
+//  Clock_Delay(T33ms) ;
+//  tempRow.moveRow(0, 2);
+//  Clock_Delay(T33ms) ;
+//  tempRow.moveRow(0, 2);
+//  Clock_Delay(T33ms) ;
+//  tempRow.moveRow(0, 2);
+//  Clock_Delay(T33ms) ;
+//  tempRow.moveRow(0, 2);
+//  Clock_Delay(T33ms) ;
+//  tempRow.moveRow(0, 2);
+//  Clock_Delay(T33ms) ;
+//  tempRow.moveRow(0, 2);
+//  Clock_Delay(T33ms) ;
+//  tempRow.moveRow(0, 2);
 
   //  Key tempKey = Key(0, -12, 32, 30, Key::white_key);
   //  tempKey.drawKey();

@@ -32,16 +32,26 @@ Row::Row(uint8_t keyColors, int16_t rowY)
 
 }
 
+Row::Row(){
+
+}
+
 void Row::drawRow(){
     for(uint8_t i = 0; i < 4; i++){
         keys[i].drawKey();
     }
 }
 
-void Row::moveRow(int16_t x, int16_t y){
+void Row::moveRow(int16_t y){
     rowY += y;
     for(uint8_t i = 0; i < 4; i++){
-        keys[i].moveKey(x, y);
+        keys[i].moveKey(y);
+    }
+}
+
+void Row::clearRow(){
+    for(uint8_t i = 0; i < 4; i++){
+        keys[i].clearKey();
     }
 }
 

@@ -234,9 +234,22 @@ void Key::drawKey(){
     ST7735_DrawBitmap(x, y + height, keyArray, width, height);
 }
 
-void Key::moveKey(int16_t x, int16_t y){
-    clearKey();
-    this->x += x;
+void Key::moveKey(int16_t y){
+    //clearKey();
+    //unsigned short whiteCell = 0xFFFF;
+    unsigned short clearArray[width*y];
+
+
+
+    for(int i = 0; i < y; i++){
+        for(int j = 0; j < width; j++){
+            clearArray[i*width + j] = 0xFFFF;
+
+        }
+    }
+
+    ST7735_DrawBitmap(this->x, this->y + y, clearArray, width, y);
+
     this->y += y;
     drawKey();
 }

@@ -19,8 +19,10 @@ class Row
 {
 public:
     Row(uint8_t keyColors, int16_t rowY);
+    Row();
     void drawRow();
-    void moveRow(int16_t x, int16_t y);
+    void moveRow(int16_t y);
+    void clearRow();
     void setOnScreen();
     void setOffScreen();
 
