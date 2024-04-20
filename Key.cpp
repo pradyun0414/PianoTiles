@@ -237,18 +237,35 @@ void Key::drawKey(){
 void Key::moveKey(int16_t y){
     //clearKey();
     //unsigned short whiteCell = 0xFFFF;
-    unsigned short clearArray[width*y];
+    if(y == 0)
+        return;
+    else if(y > 0){
+        unsigned short clearArray[width*y];
 
 
 
-    for(int i = 0; i < y; i++){
-        for(int j = 0; j < width; j++){
-            clearArray[i*width + j] = 0xFFFF;
+        for(int i = 0; i < y; i++){
+            for(int j = 0; j < width; j++){
+                clearArray[i*width + j] = 0xFFFF;
 
+            }
         }
-    }
 
-    ST7735_DrawBitmap(this->x, this->y + y, clearArray, width, y);
+        ST7735_DrawBitmap(this->x, this->y + y, clearArray, width, y);
+
+    }
+    else{
+        int posY = y * -1;
+        unsigned short clearArray[width*posY];
+        for(int i = 0; i < posY; i++){
+            for(int j = 0; j < width; j++){
+                clearArray[i*width + j] = 0xFFFF;
+
+            }
+        }
+        ST7735_DrawBitmap(this->x, this->y + height, clearArray, width, posY);
+
+    }
 
     this->y += y;
     drawKey();
@@ -256,6 +273,10 @@ void Key::moveKey(int16_t y){
 
 void Key::clearKey(){
     ST7735_DrawBitmap(x, y + height, blank_white, width, height);
+}
+
+void Key::setKeyY(int16_t y){
+    this->y = y;
 }
 
 Key::~Key()
