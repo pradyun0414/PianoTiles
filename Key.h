@@ -30,6 +30,7 @@ public:
     void moveKey(int16_t y);
     void drawKey();
     void clearKey();
+    void setKeyY(int16_t y);
 
     static const unsigned short white_key[];
     static const unsigned short black_key[];
@@ -39,8 +40,8 @@ public:
     virtual ~Key();
 
 private:
-    uint16_t x;
-    uint16_t y;
+    int16_t x;
+    int16_t y;
     uint16_t width;
     uint16_t height;
     const unsigned short* keyArray;
