@@ -20,11 +20,17 @@ class Row
 public:
     Row(uint8_t keyColors, int16_t rowY);
     Row();
+    void initializeRow(uint8_t keyColors, int16_t rowY);
+
     void drawRow();
     void moveRow(int16_t y);
     void clearRow();
     void setOnScreen();
     void setOffScreen();
+    void setRowY(int16_t y);
+
+    bool getDisplayState();
+    int16_t getRowY();
 
     virtual ~Row();
 
