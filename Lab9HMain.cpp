@@ -145,25 +145,347 @@ void moveRows(int16_t y){
 }
 
 // games  engine runs at 30Hz
-void TIMG12_IRQHandler(void){uint32_t pos,msg;
-  if((TIMG12->CPU_INT.IIDX) == 1){ // this will acknowledge
-    GPIOB->DOUTTGL31_0 = GREEN; // toggle PB27 (minimally intrusive debugging)
-    GPIOB->DOUTTGL31_0 = GREEN; // toggle PB27 (minimally intrusive debugging)
-// game engine goes here
-    // 1) sample slide pot
-    // 2) read input switches
-    // 3) move sprites
-    // 4) start sounds
-    // 5) set semaphore
-    // NO LCD OUTPUT IN INTERRUPT SERVICE ROUTINES
-    moveRows(2);
+//void TIMG12_IRQHandler(void){uint32_t pos,msg;
+//  if((TIMG12->CPU_INT.IIDX) == 1){ // this will acknowledge
+//    GPIOB->DOUTTGL31_0 = GREEN; // toggle PB27 (minimally intrusive debugging)
+//    GPIOB->DOUTTGL31_0 = GREEN; // toggle PB27 (minim ally intrusive debugging)
+//// game engine goes here
+//    // 1) sample slide pot
+//    // 2) read input switches
+//    // 3) move sprites
+//    // 4) start sounds
+//    // 5) set semaphore
+//    // NO LCD OUTPUT IN INTERRUPT SERVICE ROUTINES
+//    moveRows(2);
+//
+//    GPIOB->DOUTTGL31_0 = GREEN; // toggle PB27 (minimally intrusive debugging)
+//  }
+//}
 
-    GPIOB->DOUTTGL31_0 = GREEN; // toggle PB27 (minimally intrusive debugging)
-  }
+
+
+//uint8_t song[] = {15, 3, 5, 0, 7, 8, 11, 14, 15, 14, 11, 5, 10, 12, 1, 10, 7, 0, 13, 8, 4, 6, 9, 4, 10, 14, 5, 5, 1, 0, 8, 7, 13, 1, 10, 4, 12, 14, 8, 1, 0, 10, 6, 10, 11, 12, 7, 6, 15, 9};
+//uint16_t songLength = 50;
+//uint16_t topRow = 0; //topRow is a later note, so higher index
+//uint16_t bottomRow = 0;
+//Row rowArray[50];
+
+
+// Globals
+uint32_t risingEdge1 = 0;    // Used in Timer Handler
+uint32_t fallingEdge1 = 0;
+uint32_t risingEdge2 = 0;
+uint32_t fallingEdge2 = 0;
+uint32_t risingEdge3 = 0;
+uint32_t fallingEdge3 = 0;
+uint32_t risingEdge4 = 0;
+uint32_t fallingEdge4 = 0;
+
+
+uint32_t lives = 3; // Decremented in FSM handler
+
+int main(void) {    // main switch testing
+
+
+    __disable_irq();
+    LaunchPad_Init();
+
+    IOMUX->SECCFG.PINCM[PB12INDEX] = 0x00040081;     // PB12 Input Key1
+    IOMUX->SECCFG.PINCM[PB17INDEX] = 0x00040081;     // PB17 Input Key2
+    IOMUX->SECCFG.PINCM[PA13INDEX] = 0x00040081;     // PA13 Input Key3
+    IOMUX->SECCFG.PINCM[PA12INDEX] = 0x00040081;     // PA12 Input Key4
+
+
+    IOMUX->SECCFG.PINCM[PB16INDEX] =  0x00000081;    // Output Key1
+    GPIOB->DOE31_0 |= (1<<16);  // Output Enable
+    IOMUX->SECCFG.PINCM[PA25INDEX] =  0x00000081;    // Output Key2
+    GPIOA->DOE31_0 |= (1<<25);  // Output Enable
+    IOMUX->SECCFG.PINCM[PA26INDEX] =  0x00000081;    // Output Key3
+    GPIOA->DOE31_0 |= (1<<26);  // Output Enable
+    IOMUX->SECCFG.PINCM[PA27INDEX] =  0x00000081;    // Output Key4
+    GPIOA->DOE31_0 |= (1<<27);  // Output Enable
+
+    TimerG12_IntArm(80000000/100, 1);   // Potentially look into the frequency later
+    __enable_irq();
+    while(1){}
+
+}
+
+uint32_t clickedKeys = 0;
+
+void TIMG12_IRQHandler(void)
+{
+    if((TIMG12->CPU_INT.IIDX) == 1) {
+
+        // Key 1
+        uint32_t userInput1 = GPIOB->DIN31_0 & (1<<12);
+        if(userInput1!=0 && risingEdge1 == 0)
+        {
+            risingEdge1=1;
+        }
+        if(userInput1==0 && risingEdge1 ==1)
+        {
+            fallingEdge1=1;
+        }
+        if(risingEdge1==1 && fallingEdge1==1)
+        {
+            GPIOB->DOUTTGL31_0 |= (1<<16);
+            clickedKeys+=8; // Specific Key
+
+//            risingEdge1=0;
+//            fallingEdge1=0;
+
+        }
+
+        // Key 2
+
+        uint32_t userInput2 = GPIOB->DIN31_0 & (1<<17);
+        if(userInput2!=0 && risingEdge2 == 0)
+        {
+            risingEdge2=1;
+        }
+        if(userInput2==0 && risingEdge2 ==1)
+        {
+            fallingEdge2=1;
+        }
+        if(risingEdge2==1 && fallingEdge2==1)
+        {
+            GPIOA->DOUTTGL31_0 |= (1<<25);
+            clickedKeys+=4; // Specific Key
+
+//            risingEdge2=0;
+//            fallingEdge2=0;
+
+        }
+
+        // Key 3
+
+        uint32_t userInput3 = GPIOA->DIN31_0 & (1<<13);
+        if(userInput3!=0 && risingEdge3 == 0)
+        {
+            risingEdge3=1;
+        }
+        if(userInput3==0 && risingEdge3 ==1)
+        {
+            fallingEdge3=1;
+        }
+        if(risingEdge3==1 && fallingEdge3==1)
+        {
+            GPIOA->DOUTTGL31_0 |= (1<<26);
+            clickedKeys+=2; // Specific Key
+
+//            risingEdge3=0;
+//            fallingEdge3=0;
+
+        }
+
+
+        // Key 4
+
+        uint32_t userInput4 = GPIOA->DIN31_0 & (1<<12);
+        if(userInput4!=0 && risingEdge4 == 0)
+        {
+            risingEdge4=1;
+        }
+        if(userInput4==0 && risingEdge4 ==1)
+        {
+            fallingEdge4=1;
+        }
+        if(risingEdge4==1 && fallingEdge4==1)
+        {
+            GPIOA->DOUTTGL31_0 |= (1<<27);
+            clickedKeys+=1; // Specific Key
+
+//            risingEdge4=0;
+//            fallingEdge4=0;
+
+        }
+
+    }
+
+}
+
+// FSM stuff
+
+bool language = false; // false for English, true for Spanish
+
+struct State {
+
+    uint32_t mode;  // 0 for menu, 1 for game, 2 lastnote, 3 done
+    uint32_t outputKeys;  // indicates what keys should be pressed
+    uint32_t noteFrequency; // indicates the frequency of the note being played
+    uint32_t next[4];
+
+};
+
+uint32_t stateIndex;
+State FSM[50];
+
+// FSM INDICES:
+// Game next 0 for next note, 1 for english lose, 2 for spanish lose
+// Last note next: 0 english lose, 1 spanish lose, 2 english win, 3 spanish win
+// Menu, 0 toggle language, 1 toggle song, 2 start game
+// Done, click anything means go back to menu
+
+// Will control the state, gets called each time the "row reached bottom" semaphore is set (indicating the player should have clicked the right keys by now)
+void FSM_Handler() {
+
+    if(FSM[stateIndex].mode==1) // MAKE SURE TO ADD CONDITIONAL TO CHECK IF AT BOTTOM !!!!!!!!
+    {
+        if(clickedKeys != FSM[stateIndex].outputKeys)
+        {
+            lives--;
+        }
+        if(lives==0)
+        {
+            if(language==0)
+            {
+                stateIndex = FSM[stateIndex].next[1];
+            }
+            else
+            {
+                stateIndex = FSM[stateIndex].next[2];
+            }
+        }
+        else
+        {
+            stateIndex = FSM[stateIndex].next[0];
+        }
+    }
+
+    if(FSM[stateIndex].mode==0)
+    {
+        if(clickedKeys == 4)
+        {
+            stateIndex = FSM[stateIndex].next[0];
+            language = !language;
+
+        }
+        if(clickedKeys == 2)
+        {
+            stateIndex = FSM[stateIndex].next[1];
+        }
+        if(clickedKeys == 1)
+        {
+            stateIndex = FSM[stateIndex].next[2];
+        }
+
+        // Do nothing otherwise (stay in current state)
+    }
+
+
+    if(FSM[stateIndex].mode==2) // CHECK IF AT BOTTOM AGAIN
+    {
+        if(clickedKeys != FSM[stateIndex].outputKeys)
+        {
+            lives--;
+        }
+        if(lives==0)
+        {
+            if(language==0)
+            {
+                stateIndex = FSM[stateIndex].next[0];
+            }
+            else
+            {
+                stateIndex = FSM[stateIndex].next[1];
+            }
+        }
+        else
+        {
+            if(language==0)
+             {
+                 stateIndex = FSM[stateIndex].next[2];
+             }
+             else
+             {
+                 stateIndex = FSM[stateIndex].next[3];
+             }
+        }
+    }
+
+    if(FSM[stateIndex].mode==3)
+    {
+        if(clickedKeys!=0)
+        {
+            stateIndex = FSM[stateIndex].next[0];
+        }
+    }
+
+
+    risingEdge1=0;
+    fallingEdge1=0;
+    risingEdge2=0;
+    fallingEdge2=0;
+    risingEdge3=0;
+    fallingEdge3=0;
+    risingEdge4=0;
+    fallingEdge4=0;
+
+    clickedKeys = 0;    // Reset to 0 because done
+
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+int mainEdge(void) {        // Edge triggered main
+
+    // Using PB14 as switch to test
+
+    __disable_irq();
+    LaunchPad_Init();   // Doesn't do anything with PB14 actually, I do that myself
+//    ST7735_InitPrintf();
+//    ST7735_FillScreen(0xFFFF);
+
+    IOMUX->SECCFG.PINCM[PB12INDEX] = 0x00040081;     // PB12 Input
+
+    // EdgeTriggered Initializations
+
+//    GPIOB->POLARITY15_0 = (3<<24);  // Will set interrupt on both rising and falling edge
+//    GPIOB->CPU_INT.ICLR = (1<<12);
+//    GPIOB->CPU_INT.IMASK = (1<<12); // Arm PB12
+//
+//    NVIC->IP[0] = (NVIC->IP[0]&(~0x0000FF00)) | 2<<14; // priority=2
+//    NVIC->ISER[0] = 1 << 1; // Groupl interrupt
+
+
+    // To test inputs, using an LED
+
+    IOMUX->SECCFG.PINCM[PB16INDEX] =  0x00000081;    // Output
+    GPIOB->DOE31_0 |= (1<<16);  // Output Enable
+
+    __enable_irq();
+
+    while(1)
+    {
+
+// Testing
+        uint32_t userInput = GPIOB->DIN31_0;
+        userInput = userInput & (1<<12);
+        if(userInput == 0)
+        {
+            GPIOB->DOUTCLR31_0 |= (1<<16);
+        }
+        else
+        {
+            GPIOB->DOUTSET31_0 |= (1<<16);
+        }
+    }
+
+}
+
+void GROUP1_IRQHandler(void) {
+
+    GPIOB->DOUTTGL31_0 |= (1<<16);
+    GPIOB->CPU_INT.ICLR = (1<<12);
 }
 
 // use main1 to observe special characters
-int main(void){ // main1
+int main1(void){ // main1
     char l;
   __disable_irq();
   PLL_Init(); // set bus speed
