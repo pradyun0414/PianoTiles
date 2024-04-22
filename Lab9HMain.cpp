@@ -158,25 +158,25 @@ void moveRows(int16_t y){
 
 // games  engine runs at 30Hz
 
-//void TIMG12_IRQHandler(void){uint32_t pos,msg;
-//  if((TIMG12->CPU_INT.IIDX) == 1) { // this will acknowledge
-//    GPIOB->DOUTTGL31_0 = GREEN; // toggle PB27 (minimally intrusive debugging)
-//    GPIOB->DOUTTGL31_0 = GREEN; // toggle PB27 (minimally intrusive debugging)
-//// game engine goes here
-//    // 1) sample slide pot
-//    // 2) read input switches
-//    // 3) move sprites
-//    // 4) start sounds
-//    // 5) set semaphore
-//    // NO LCD OUTPUT IN INTERRUPT SERVICE ROUTINES
-//
-//    startTime = SysTick->VAL;
-//    moveRows(2);
-//    stopTime = SysTick->VAL;
-//    Converttime = ((startTime-stopTime)&0x0FFFFFF)-Offset; // in bus cycles
-//
-// }
+void TIMG12_IRQHandler(void){uint32_t pos,msg;
+  if((TIMG12->CPU_INT.IIDX) == 1) { // this will acknowledge
+    GPIOB->DOUTTGL31_0 = GREEN; // toggle PB27 (minimally intrusive debugging)
+    GPIOB->DOUTTGL31_0 = GREEN; // toggle PB27 (minimally intrusive debugging)
+// game engine goes here
+    // 1) sample slide pot
+    // 2) read input switches
+    // 3) move sprites
+    // 4) start sounds
+    // 5) set semaphore
+    // NO LCD OUTPUT IN INTERRUPT SERVICE ROUTINES
 
+    startTime = SysTick->VAL;
+    moveRows(2);
+    stopTime = SysTick->VAL;
+    Converttime = ((startTime-stopTime)&0x0FFFFFF)-Offset; // in bus cycles
+
+ }
+}
 //uint8_t song[] = {15, 3, 5, 0, 7, 8, 11, 14, 15, 14, 11, 5, 10, 12, 1, 10, 7, 0, 13, 8, 4, 6, 9, 4, 10, 14, 5, 5, 1, 0, 8, 7, 13, 1, 10, 4, 12, 14, 8, 1, 0, 10, 6, 10, 11, 12, 7, 6, 15, 9};
 //uint16_t songLength = 50;
 //uint16_t topRow = 0; //topRow is a later note, so higher index
@@ -226,97 +226,97 @@ int mainSwitch(void) {    // main switch testing
 
 uint32_t clickedKeys = 0;
 
-void TIMG12_IRQHandler(void)
-{
-    if((TIMG12->CPU_INT.IIDX) == 1) {
-
-        // Key 1
-        uint32_t userInput1 = GPIOB->DIN31_0 & (1<<12);
-        if(userInput1!=0 && risingEdge1 == 0)
-        {
-            risingEdge1=1;
-        }
-        if(userInput1==0 && risingEdge1 ==1)
-        {
-            fallingEdge1=1;
-        }
-        if(risingEdge1==1 && fallingEdge1==1)
-        {
-            GPIOB->DOUTTGL31_0 |= (1<<16);
-            clickedKeys+=8; // Specific Key
-
-//            risingEdge1=0;
-//            fallingEdge1=0;
-
-        }
-
-        // Key 2
-
-        uint32_t userInput2 = GPIOB->DIN31_0 & (1<<17);
-        if(userInput2!=0 && risingEdge2 == 0)
-        {
-            risingEdge2=1;
-        }
-        if(userInput2==0 && risingEdge2 ==1)
-        {
-            fallingEdge2=1;
-        }
-        if(risingEdge2==1 && fallingEdge2==1)
-        {
-            GPIOA->DOUTTGL31_0 |= (1<<25);
-            clickedKeys+=4; // Specific Key
-
-//            risingEdge2=0;
-//            fallingEdge2=0;
-
-        }
-
-        // Key 3
-
-        uint32_t userInput3 = GPIOA->DIN31_0 & (1<<13);
-        if(userInput3!=0 && risingEdge3 == 0)
-        {
-            risingEdge3=1;
-        }
-        if(userInput3==0 && risingEdge3 ==1)
-        {
-            fallingEdge3=1;
-        }
-        if(risingEdge3==1 && fallingEdge3==1)
-        {
-            GPIOA->DOUTTGL31_0 |= (1<<26);
-            clickedKeys+=2; // Specific Key
-
-//            risingEdge3=0;
-//            fallingEdge3=0;
-
-        }
-
-
-        // Key 4
-
-        uint32_t userInput4 = GPIOA->DIN31_0 & (1<<12);
-        if(userInput4!=0 && risingEdge4 == 0)
-        {
-            risingEdge4=1;
-        }
-        if(userInput4==0 && risingEdge4 ==1)
-        {
-            fallingEdge4=1;
-        }
-        if(risingEdge4==1 && fallingEdge4==1)
-        {
-            GPIOA->DOUTTGL31_0 |= (1<<27);
-            clickedKeys+=1; // Specific Key
-
-//            risingEdge4=0;
-//            fallingEdge4=0;
-
-        }
-
-    }
-
-}
+//void TIMG12_IRQHandler(void)
+//{
+//    if((TIMG12->CPU_INT.IIDX) == 1) {
+//
+//        // Key 1
+//        uint32_t userInput1 = GPIOB->DIN31_0 & (1<<12);
+//        if(userInput1!=0 && risingEdge1 == 0)
+//        {
+//            risingEdge1=1;
+//        }
+//        if(userInput1==0 && risingEdge1 ==1)
+//        {
+//            fallingEdge1=1;
+//        }
+//        if(risingEdge1==1 && fallingEdge1==1)
+//        {
+//            GPIOB->DOUTTGL31_0 |= (1<<16);
+//            clickedKeys+=8; // Specific Key
+//
+////            risingEdge1=0;
+////            fallingEdge1=0;
+//
+//        }
+//
+//        // Key 2
+//
+//        uint32_t userInput2 = GPIOB->DIN31_0 & (1<<17);
+//        if(userInput2!=0 && risingEdge2 == 0)
+//        {
+//            risingEdge2=1;
+//        }
+//        if(userInput2==0 && risingEdge2 ==1)
+//        {
+//            fallingEdge2=1;
+//        }
+//        if(risingEdge2==1 && fallingEdge2==1)
+//        {
+//            GPIOA->DOUTTGL31_0 |= (1<<25);
+//            clickedKeys+=4; // Specific Key
+//
+////            risingEdge2=0;
+////            fallingEdge2=0;
+//
+//        }
+//
+//        // Key 3
+//
+//        uint32_t userInput3 = GPIOA->DIN31_0 & (1<<13);
+//        if(userInput3!=0 && risingEdge3 == 0)
+//        {
+//            risingEdge3=1;
+//        }
+//        if(userInput3==0 && risingEdge3 ==1)
+//        {
+//            fallingEdge3=1;
+//        }
+//        if(risingEdge3==1 && fallingEdge3==1)
+//        {
+//            GPIOA->DOUTTGL31_0 |= (1<<26);
+//            clickedKeys+=2; // Specific Key
+//
+////            risingEdge3=0;
+////            fallingEdge3=0;
+//
+//        }
+//
+//
+//        // Key 4
+//
+//        uint32_t userInput4 = GPIOA->DIN31_0 & (1<<12);
+//        if(userInput4!=0 && risingEdge4 == 0)
+//        {
+//            risingEdge4=1;
+//        }
+//        if(userInput4==0 && risingEdge4 ==1)
+//        {
+//            fallingEdge4=1;
+//        }
+//        if(risingEdge4==1 && fallingEdge4==1)
+//        {
+//            GPIOA->DOUTTGL31_0 |= (1<<27);
+//            clickedKeys+=1; // Specific Key
+//
+////            risingEdge4=0;
+////            fallingEdge4=0;
+//
+//        }
+//
+//    }
+//
+//}
 
 // FSM stuff
 
@@ -499,7 +499,7 @@ void GROUP1_IRQHandler(void) {
     moveRows(2);
 
     GPIOB->DOUTTGL31_0 = GREEN; // toggle PB27 (minimally intrusive debugging)
-  }
+
 }
 
 // use main1 to observe special characters
