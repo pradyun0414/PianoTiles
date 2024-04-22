@@ -157,29 +157,11 @@ void moveRows(int16_t y){
 }
 
 // games  engine runs at 30Hz
-<<<<<<< HEAD
-void TIMG12_IRQHandler(void){uint32_t pos,msg;
-  if((TIMG12->CPU_INT.IIDX) == 1){ // this will acknowledge
-    GPIOB->DOUTTGL31_0 = GREEN; // toggle PB27 (minimally intrusive debugging)
-    GPIOB->DOUTTGL31_0 = GREEN; // toggle PB27 (minimally intrusive debugging)
 
-
-// game engine goes here
-    // 1) sample slide pot
-    // 2) read input switches
-    // 3) move sprites
-    // 4) start sounds
-    // 5) set semaphore
-    // NO LCD OUTPUT IN INTERRUPT SERVICE ROUTINES
-    startTime = SysTick->VAL;
-    moveRows(2);
-    stopTime = SysTick->VAL;
-    Converttime = ((startTime-stopTime)&0x0FFFFFF)-Offset; // in bus cycles
-=======
 //void TIMG12_IRQHandler(void){uint32_t pos,msg;
-//  if((TIMG12->CPU_INT.IIDX) == 1){ // this will acknowledge
+//  if((TIMG12->CPU_INT.IIDX) == 1) { // this will acknowledge
 //    GPIOB->DOUTTGL31_0 = GREEN; // toggle PB27 (minimally intrusive debugging)
-//    GPIOB->DOUTTGL31_0 = GREEN; // toggle PB27 (minim ally intrusive debugging)
+//    GPIOB->DOUTTGL31_0 = GREEN; // toggle PB27 (minimally intrusive debugging)
 //// game engine goes here
 //    // 1) sample slide pot
 //    // 2) read input switches
@@ -187,14 +169,13 @@ void TIMG12_IRQHandler(void){uint32_t pos,msg;
 //    // 4) start sounds
 //    // 5) set semaphore
 //    // NO LCD OUTPUT IN INTERRUPT SERVICE ROUTINES
-//    moveRows(2);
 //
-//    GPIOB->DOUTTGL31_0 = GREEN; // toggle PB27 (minimally intrusive debugging)
-//  }
-//}
->>>>>>> Gameplay
-
-
+//    startTime = SysTick->VAL;
+//    moveRows(2);
+//    stopTime = SysTick->VAL;
+//    Converttime = ((startTime-stopTime)&0x0FFFFFF)-Offset; // in bus cycles
+//
+// }
 
 //uint8_t song[] = {15, 3, 5, 0, 7, 8, 11, 14, 15, 14, 11, 5, 10, 12, 1, 10, 7, 0, 13, 8, 4, 6, 9, 4, 10, 14, 5, 5, 1, 0, 8, 7, 13, 1, 10, 4, 12, 14, 8, 1, 0, 10, 6, 10, 11, 12, 7, 6, 15, 9};
 //uint16_t songLength = 50;
@@ -216,7 +197,7 @@ uint32_t fallingEdge4 = 0;
 
 uint32_t lives = 3; // Decremented in FSM handler
 
-int main(void) {    // main switch testing
+int mainSwitch(void) {    // main switch testing
 
 
     __disable_irq();
@@ -514,10 +495,15 @@ void GROUP1_IRQHandler(void) {
 
     GPIOB->DOUTTGL31_0 |= (1<<16);
     GPIOB->CPU_INT.ICLR = (1<<12);
+
+    moveRows(2);
+
+    GPIOB->DOUTTGL31_0 = GREEN; // toggle PB27 (minimally intrusive debugging)
+  }
 }
 
 // use main1 to observe special characters
-int main1(void){ // main1
+int main(void){ // main1
     char l;
   __disable_irq();
   PLL_Init(); // set bus speed
