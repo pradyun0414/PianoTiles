@@ -24,11 +24,13 @@ public:
     uint16_t getWidth();
     uint16_t getHeight();
     short* getArray();
+    bool getNeedsDraw();
 
     void initializeKey(int16_t x, int16_t y, uint16_t width, uint16_t height, const unsigned short* keyArray);
 
     void moveKey(int16_t y);
     void drawKey();
+    void redrawKey();
     void clearKey();
     void setKeyY(int16_t y);
 
@@ -44,7 +46,11 @@ private:
     int16_t y;
     uint16_t width;
     uint16_t height;
+    int16_t oldY;
     const unsigned short* keyArray;
+
+
+    bool needsDraw;
 
     //static const unsigned short* blank_white;
 

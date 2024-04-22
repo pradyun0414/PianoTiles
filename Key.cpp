@@ -208,6 +208,7 @@ Key::Key(int16_t x, int16_t y, uint16_t width, uint16_t height, const unsigned s
         // TODO Auto-generated constructor stub
         this->x = x;
         this->y = y;
+        this->oldY = y;
         this-> width = width;
         this->height = height;
         this->keyArray = keyArray;
@@ -217,6 +218,7 @@ Key::Key(int16_t x, int16_t y, uint16_t width, uint16_t height, const unsigned s
 Key::Key(){
     this->x = 0;
     this->y = 0;
+    this->oldY = 0;
     this-> width = 0;
     this->height = 0;
     this->keyArray = blank_white;
@@ -225,50 +227,49 @@ Key::Key(){
 void Key::initializeKey(int16_t x, int16_t y, uint16_t width, uint16_t height, const unsigned short* keyArray){
     this->x = x;
     this->y = y;
+    this->oldY = y;
     this-> width = width;
     this->height = height;
     this->keyArray = keyArray;
 }
 
 void Key::drawKey(){
+    oldY = y;
     ST7735_DrawBitmap(x, y + height, keyArray, width, height);
 }
 
-void Key::moveKey(int16_t y){
-    //clearKey();
-    //unsigned short whiteCell = 0xFFFF;
-    if(y == 0)
+void Key::redrawKey(){
+
+
+    if(oldY == y)
         return;
-    else if(y > 0){
-        unsigned short clearArray[width*y];
-
-
-
-        for(int i = 0; i < y; i++){
-            for(int j = 0; j < width; j++){
-                clearArray[i*width + j] = 0xFFFF;
-
-            }
+    else if(oldY < y){
+        //__disable_irq();
+        for(uint8_t i = oldY + 1; i <= y; i++){
+            ST7735_DrawFastHLine(this->x, i, this->width, 0xFFFF);
         }
-
-        ST7735_DrawBitmap(this->x, this->y + y, clearArray, width, y);
+        //__enable_irq();
+        oldY = this->y;
+        ST7735_DrawBitmap(x, y + height, keyArray, width, height);
 
     }
-    else{
-        int posY = y * -1;
-        unsigned short clearArray[width*posY];
-        for(int i = 0; i < posY; i++){
-            for(int j = 0; j < width; j++){
-                clearArray[i*width + j] = 0xFFFF;
-
-            }
+    else if(oldY > y){
+        for(int i = y; i < oldY; i++){
+            ST7735_DrawFastHLine(this->x, i, this->width, 0xFFFF);
         }
-        ST7735_DrawBitmap(this->x, this->y + height, clearArray, width, posY);
+        ST7735_DrawBitmap(x, y + height, keyArray, width, height);
 
     }
 
+
+
+
+}
+
+void Key::moveKey(int16_t y){
+
+    //oldY = this->y;
     this->y += y;
-    drawKey();
 }
 
 void Key::clearKey(){
@@ -277,6 +278,11 @@ void Key::clearKey(){
 
 void Key::setKeyY(int16_t y){
     this->y = y;
+    oldY = y;
+}
+
+bool Key::getNeedsDraw(){
+    return needsDraw;
 }
 
 Key::~Key()

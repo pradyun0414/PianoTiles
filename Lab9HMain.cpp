@@ -39,6 +39,9 @@ uint16_t songLength = 50;
 uint16_t topRow = 0; //topRow is a later note, so higher index
 uint16_t bottomRow = 0;
 Row rowArray[50];
+//bool needsRedraw;
+
+uint32_t startTime,stopTime, Offset, Converttime;
 
 
 // ****note to ECE319K students****
@@ -119,29 +122,38 @@ void startGameRows(){
 
     bottomRow = 0;
     topRow = 3;
+
+    //needsRedraw = false;
 }
 
 void adjustVisible(){
-    if(rowArray[bottomRow].getRowY() > 110){
+    if(bottomRow >= songLength)
+        return;
+    if(rowArray[bottomRow].getRowY() > 140){
         rowArray[bottomRow].setOffScreen();
         rowArray[bottomRow].clearRow();
         bottomRow++;
     }
 
-    if(rowArray[topRow].getRowY() > 20){
+    if(rowArray[topRow].getRowY() > 20 && topRow < songLength){
         rowArray[topRow + 1].setOnScreen();
         rowArray[topRow + 1].setRowY(rowArray[topRow].getRowY() - 30);
         topRow++;
+        rowArray[topRow].drawRow();
     }
 }
 
 void moveRows(int16_t y){
-    for(uint8_t i = 0; i < songLength; i++){
-        if(rowArray[i].getDisplayState()){
-            rowArray[i].moveRow(y);
-        }
+//    for(uint8_t i = 0; i < songLength; i++){
+//        if(rowArray[i].getDisplayState()){
+//            rowArray[i].moveRow(y);
+//        }
+//    }
+    for(int i = bottomRow; i <= topRow; i++){
+        rowArray[i].moveRow(y);
     }
-    adjustVisible();
+
+    //needsRedraw = true;
 }
 
 // games  engine runs at 30Hz
@@ -149,6 +161,8 @@ void TIMG12_IRQHandler(void){uint32_t pos,msg;
   if((TIMG12->CPU_INT.IIDX) == 1){ // this will acknowledge
     GPIOB->DOUTTGL31_0 = GREEN; // toggle PB27 (minimally intrusive debugging)
     GPIOB->DOUTTGL31_0 = GREEN; // toggle PB27 (minimally intrusive debugging)
+
+
 // game engine goes here
     // 1) sample slide pot
     // 2) read input switches
@@ -156,7 +170,10 @@ void TIMG12_IRQHandler(void){uint32_t pos,msg;
     // 4) start sounds
     // 5) set semaphore
     // NO LCD OUTPUT IN INTERRUPT SERVICE ROUTINES
+    startTime = SysTick->VAL;
     moveRows(2);
+    stopTime = SysTick->VAL;
+    Converttime = ((startTime-stopTime)&0x0FFFFFF)-Offset; // in bus cycles
 
     GPIOB->DOUTTGL31_0 = GREEN; // toggle PB27 (minimally intrusive debugging)
   }
@@ -170,6 +187,15 @@ int main(void){ // main1
   LaunchPad_Init();
   ST7735_InitPrintf();
   ST7735_FillScreen(0xFFFF);            // set screen to black
+
+  SysTick->LOAD = 0xFFFFFF;    // max
+    SysTick->VAL = 0;            // any write to current clears it
+    SysTick->CTRL = 0x00000005;  // enable SysTick with core clock
+
+    startTime = SysTick->VAL;
+            stopTime = SysTick->VAL;
+            Offset = (startTime-stopTime)&0x0FFFFFF; // in bus cycles
+
   TimerG12_IntArm(80000000/30,2);
 
 
@@ -182,6 +208,17 @@ int main(void){ // main1
   __enable_irq();
 
   while(1){
+
+      for(int i = bottomRow; i <= topRow; i++){
+          for(int j = 0; j < 4; j++){
+              rowArray[i].getKey(j).redrawKey();
+          }
+
+      }
+      adjustVisible();
+  }
+
+
       //moveRows(2);
       //Clock_Delay(T33ms) ;
 //      Row tempRow = Row(11, 20);
@@ -192,7 +229,7 @@ int main(void){ // main1
 //          tempRow.moveRow(2);
 //      }
 //      tempRow.clearRow();
-  }
+
 
 //  Row tempRow = Row(11, 20);
 //  tempRow.drawRow();

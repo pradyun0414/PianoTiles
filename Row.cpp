@@ -83,6 +83,10 @@ int16_t Row::getRowY(){
     return rowY;
 }
 
+Key& Row::getKey(uint8_t index){
+    return keys[index];
+}
+
 void Row::setOnScreen(){
     onScreen = true;
 }

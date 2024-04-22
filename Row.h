@@ -31,6 +31,7 @@ public:
 
     bool getDisplayState();
     int16_t getRowY();
+    Key& getKey(uint8_t index);
 
     virtual ~Row();
 
