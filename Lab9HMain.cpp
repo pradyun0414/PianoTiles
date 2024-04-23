@@ -26,6 +26,8 @@
 extern "C" void __disable_irq(void);
 extern "C" void __enable_irq(void);
 extern "C" void TIMG12_IRQHandler(void);
+extern "C" void TIMG6_IRQHandler(void);
+
 
 #define B 0x0000
 #define W 0x0FFF
@@ -40,6 +42,9 @@ uint16_t topRow = 0; //topRow is a later note, so higher index
 uint16_t bottomRow = 0;
 Row rowArray[50];
 //bool needsRedraw;
+uint16_t g6counter = 0;
+bool switchingMode = false; //needs mode initialization if true
+bool switchingMenuState = false; //needs to redraw menu when switching menu states
 
 uint32_t startTime,stopTime, Offset, Converttime;
 
@@ -102,6 +107,8 @@ void generateRowArray(){
 }
 
 void startGameRows(){
+
+    ST7735_FillScreen(0xFFFF);            // set screen to white to reset screen
     rowArray[0].setOnScreen();
     rowArray[0].setRowY(110);
     rowArray[0].drawRow();
@@ -153,13 +160,15 @@ void moveRows(int16_t y){
         rowArray[i].moveRow(y);
     }
 
+    //adjustVisible();
+
     //needsRedraw = true;
 }
 
 // games  engine runs at 30Hz
 
-void TIMG12_IRQHandler(void){uint32_t pos,msg;
-  if((TIMG12->CPU_INT.IIDX) == 1) { // this will acknowledge
+void TIMG6_IRQHandler(void){uint32_t pos,msg;
+  if((TIMG6->CPU_INT.IIDX) == 1) { // this will acknowledge
     GPIOB->DOUTTGL31_0 = GREEN; // toggle PB27 (minimally intrusive debugging)
     GPIOB->DOUTTGL31_0 = GREEN; // toggle PB27 (minimally intrusive debugging)
 // game engine goes here
@@ -169,11 +178,16 @@ void TIMG12_IRQHandler(void){uint32_t pos,msg;
     // 4) start sounds
     // 5) set semaphore
     // NO LCD OUTPUT IN INTERRUPT SERVICE ROUTINES
+    g6counter++;
 
-    startTime = SysTick->VAL;
-    moveRows(2);
-    stopTime = SysTick->VAL;
-    Converttime = ((startTime-stopTime)&0x0FFFFFF)-Offset; // in bus cycles
+    if(g6counter == 1000){
+        startTime = SysTick->VAL;
+        moveRows(2);
+        stopTime = SysTick->VAL;
+        Converttime = ((startTime-stopTime)&0x0FFFFFF)-Offset; // in bus cycles
+        g6counter = 0;
+    }
+
 
  }
 }
@@ -218,7 +232,7 @@ int mainSwitch(void) {    // main switch testing
     IOMUX->SECCFG.PINCM[PA27INDEX] =  0x00000081;    // Output Key4
     GPIOA->DOE31_0 |= (1<<27);  // Output Enable
 
-    TimerG12_IntArm(80000000/100, 1);   // Potentially look into the frequency later
+    //TimerG12_IntArm(80000000/100, 1);   // Potentially look into the frequency later
     __enable_irq();
     while(1){}
 
@@ -226,97 +240,97 @@ int mainSwitch(void) {    // main switch testing
 
 uint32_t clickedKeys = 0;
 
-//void TIMG12_IRQHandler(void)
-//{
-//    if((TIMG12->CPU_INT.IIDX) == 1) {
-//
-//        // Key 1
-//        uint32_t userInput1 = GPIOB->DIN31_0 & (1<<12);
-//        if(userInput1!=0 && risingEdge1 == 0)
-//        {
-//            risingEdge1=1;
-//        }
-//        if(userInput1==0 && risingEdge1 ==1)
-//        {
-//            fallingEdge1=1;
-//        }
-//        if(risingEdge1==1 && fallingEdge1==1)
-//        {
-//            GPIOB->DOUTTGL31_0 |= (1<<16);
-//            clickedKeys+=8; // Specific Key
-//
-////            risingEdge1=0;
-////            fallingEdge1=0;
-//
-//        }
-//
-//        // Key 2
-//
-//        uint32_t userInput2 = GPIOB->DIN31_0 & (1<<17);
-//        if(userInput2!=0 && risingEdge2 == 0)
-//        {
-//            risingEdge2=1;
-//        }
-//        if(userInput2==0 && risingEdge2 ==1)
-//        {
-//            fallingEdge2=1;
-//        }
-//        if(risingEdge2==1 && fallingEdge2==1)
-//        {
-//            GPIOA->DOUTTGL31_0 |= (1<<25);
-//            clickedKeys+=4; // Specific Key
-//
-////            risingEdge2=0;
-////            fallingEdge2=0;
-//
-//        }
-//
-//        // Key 3
-//
-//        uint32_t userInput3 = GPIOA->DIN31_0 & (1<<13);
-//        if(userInput3!=0 && risingEdge3 == 0)
-//        {
-//            risingEdge3=1;
-//        }
-//        if(userInput3==0 && risingEdge3 ==1)
-//        {
-//            fallingEdge3=1;
-//        }
-//        if(risingEdge3==1 && fallingEdge3==1)
-//        {
-//            GPIOA->DOUTTGL31_0 |= (1<<26);
-//            clickedKeys+=2; // Specific Key
-//
-////            risingEdge3=0;
-////            fallingEdge3=0;
-//
-//        }
-//
-//
-//        // Key 4
-//
-//        uint32_t userInput4 = GPIOA->DIN31_0 & (1<<12);
-//        if(userInput4!=0 && risingEdge4 == 0)
-//        {
-//            risingEdge4=1;
-//        }
-//        if(userInput4==0 && risingEdge4 ==1)
-//        {
-//            fallingEdge4=1;
-//        }
-//        if(risingEdge4==1 && fallingEdge4==1)
-//        {
-//            GPIOA->DOUTTGL31_0 |= (1<<27);
-//            clickedKeys+=1; // Specific Key
-//
-////            risingEdge4=0;
-////            fallingEdge4=0;
-//
-//        }
-//
-//    }
-//
-//}
+void TIMG12_IRQHandler(void)
+{
+    if((TIMG12->CPU_INT.IIDX) == 1) {
+
+        // Key 1
+        uint32_t userInput1 = GPIOB->DIN31_0 & (1<<12);
+        if(userInput1!=0 && risingEdge1 == 0)
+        {
+            risingEdge1=1;
+        }
+        if(userInput1==0 && risingEdge1 ==1)
+        {
+            fallingEdge1=1;
+        }
+        if(risingEdge1==1 && fallingEdge1==1)
+        {
+            GPIOB->DOUTTGL31_0 |= (1<<16);
+            clickedKeys+=8; // Specific Key
+
+//            risingEdge1=0;
+//            fallingEdge1=0;
+
+        }
+
+        // Key 2
+
+        uint32_t userInput2 = GPIOB->DIN31_0 & (1<<17);
+        if(userInput2!=0 && risingEdge2 == 0)
+        {
+            risingEdge2=1;
+        }
+        if(userInput2==0 && risingEdge2 ==1)
+        {
+            fallingEdge2=1;
+        }
+        if(risingEdge2==1 && fallingEdge2==1)
+        {
+            GPIOA->DOUTTGL31_0 |= (1<<25);
+            clickedKeys+=4; // Specific Key
+
+//            risingEdge2=0;
+//            fallingEdge2=0;
+
+        }
+
+        // Key 3
+
+        uint32_t userInput3 = GPIOA->DIN31_0 & (1<<13);
+        if(userInput3!=0 && risingEdge3 == 0)
+        {
+            risingEdge3=1;
+        }
+        if(userInput3==0 && risingEdge3 ==1)
+        {
+            fallingEdge3=1;
+        }
+        if(risingEdge3==1 && fallingEdge3==1)
+        {
+            GPIOA->DOUTTGL31_0 |= (1<<26);
+            clickedKeys+=2; // Specific Key
+
+//            risingEdge3=0;
+//            fallingEdge3=0;
+
+        }
+
+
+        // Key 4
+
+        uint32_t userInput4 = GPIOA->DIN31_0 & (1<<12);
+        if(userInput4!=0 && risingEdge4 == 0)
+        {
+            risingEdge4=1;
+        }
+        if(userInput4==0 && risingEdge4 ==1)
+        {
+            fallingEdge4=1;
+        }
+        if(risingEdge4==1 && fallingEdge4==1)
+        {
+            GPIOA->DOUTTGL31_0 |= (1<<27);
+            clickedKeys+=1; // Specific Key
+
+//            risingEdge4=0;
+//            fallingEdge4=0;
+
+        }
+
+    }
+
+}
 
 // FSM stuff
 
@@ -345,97 +359,169 @@ void FSM_Handler() {
 
     if(FSM[stateIndex].mode==1) // MAKE SURE TO ADD CONDITIONAL TO CHECK IF AT BOTTOM !!!!!!!!
     {
-        if(clickedKeys != FSM[stateIndex].outputKeys)
-        {
-            lives--;
+        if(clickedKeys == FSM[stateIndex].outputKeys){
+            for(uint8_t i = 0; i < 4; i++){
+                if(rowArray[bottomRow].getKey(i).getArray() == Key::black_key){
+                    rowArray[bottomRow].getKey(i).switchToClicked();
+                }
+            }
+
+            //OUTPUT SOUND HERE (OR CALL SOMETHING THAT WILL)
         }
-        if(lives==0)
-        {
-            if(language==0)
+
+
+        if(rowArray[bottomRow].getRowY() == 140){
+            if(clickedKeys != FSM[stateIndex].outputKeys)
             {
-                stateIndex = FSM[stateIndex].next[1];
+                lives--;
+            }
+            if(lives==0)
+            {
+                if(language==0)
+                {
+                    stateIndex = FSM[stateIndex].next[1];
+                    switchingMode = true;
+                }
+                else
+                {
+                    stateIndex = FSM[stateIndex].next[2];
+                    switchingMode = true;
+                }
             }
             else
             {
-                stateIndex = FSM[stateIndex].next[2];
+                stateIndex = FSM[stateIndex].next[0];
             }
+
+            risingEdge1=0;
+            fallingEdge1=0;
+            risingEdge2=0;
+            fallingEdge2=0;
+            risingEdge3=0;
+            fallingEdge3=0;
+            risingEdge4=0;
+            fallingEdge4=0;
+
+            clickedKeys = 0;    // Reset to 0 because done
         }
-        else
-        {
-            stateIndex = FSM[stateIndex].next[0];
-        }
+
     }
 
-    if(FSM[stateIndex].mode==0)
+    else if(FSM[stateIndex].mode==0)
     {
         if(clickedKeys == 4)
         {
             stateIndex = FSM[stateIndex].next[0];
             language = !language;
+            switchingMenuState = true;
 
         }
         if(clickedKeys == 2)
         {
             stateIndex = FSM[stateIndex].next[1];
+            switchingMenuState = true;
         }
         if(clickedKeys == 1)
         {
             stateIndex = FSM[stateIndex].next[2];
+            switchingMode = true;
         }
 
         // Do nothing otherwise (stay in current state)
+
+        risingEdge1=0;
+        fallingEdge1=0;
+        risingEdge2=0;
+        fallingEdge2=0;
+        risingEdge3=0;
+        fallingEdge3=0;
+        risingEdge4=0;
+        fallingEdge4=0;
+
+        clickedKeys = 0;    // Reset to 0 because done
     }
 
 
-    if(FSM[stateIndex].mode==2) // CHECK IF AT BOTTOM AGAIN
+    else if(FSM[stateIndex].mode==2) // CHECK IF AT BOTTOM AGAIN
     {
-        if(clickedKeys != FSM[stateIndex].outputKeys)
-        {
-            lives--;
+        if(clickedKeys == FSM[stateIndex].outputKeys){
+            for(uint8_t i = 0; i < 4; i++){
+                if(rowArray[bottomRow].getKey(i).getArray() == Key::black_key){
+                    rowArray[bottomRow].getKey(i).switchToClicked();
+                }
+            }
+
+            //OUTPUT SOUND HERE (OR CALL SOMETHING THAT WILL)
         }
-        if(lives==0)
-        {
-            if(language==0)
+
+        if(rowArray[bottomRow].getRowY() == 140){
+            if(clickedKeys != FSM[stateIndex].outputKeys)
             {
-                stateIndex = FSM[stateIndex].next[0];
+                lives--;
+            }
+            if(lives==0)
+            {
+                if(language==0)
+                {
+                    stateIndex = FSM[stateIndex].next[0];
+                    switchingMode = true;
+                }
+                else
+                {
+                    stateIndex = FSM[stateIndex].next[1];
+                    switchingMode = true;
+                }
             }
             else
             {
-                stateIndex = FSM[stateIndex].next[1];
+                if(language==0)
+                 {
+                     stateIndex = FSM[stateIndex].next[2];
+                     switchingMode = true;
+                 }
+                 else
+                 {
+                     stateIndex = FSM[stateIndex].next[3];
+                     switchingMode = true;
+                 }
             }
+
+            risingEdge1=0;
+            fallingEdge1=0;
+            risingEdge2=0;
+            fallingEdge2=0;
+            risingEdge3=0;
+            fallingEdge3=0;
+            risingEdge4=0;
+            fallingEdge4=0;
+
+            clickedKeys = 0;    // Reset to 0 because done
         }
-        else
-        {
-            if(language==0)
-             {
-                 stateIndex = FSM[stateIndex].next[2];
-             }
-             else
-             {
-                 stateIndex = FSM[stateIndex].next[3];
-             }
-        }
+
     }
 
-    if(FSM[stateIndex].mode==3)
+    else if(FSM[stateIndex].mode==3)
     {
         if(clickedKeys!=0)
         {
             stateIndex = FSM[stateIndex].next[0];
+            switchingMode = true;
         }
+
+        risingEdge1=0;
+        fallingEdge1=0;
+        risingEdge2=0;
+        fallingEdge2=0;
+        risingEdge3=0;
+        fallingEdge3=0;
+        risingEdge4=0;
+        fallingEdge4=0;
+
+        clickedKeys = 0;    // Reset to 0 because done
     }
 
 
-    risingEdge1=0;
-    fallingEdge1=0;
-    risingEdge2=0;
-    fallingEdge2=0;
-    risingEdge3=0;
-    fallingEdge3=0;
-    risingEdge4=0;
-    fallingEdge4=0;
 
-    clickedKeys = 0;    // Reset to 0 because done
 
 }
 
@@ -496,7 +582,7 @@ void GROUP1_IRQHandler(void) {
     GPIOB->DOUTTGL31_0 |= (1<<16);
     GPIOB->CPU_INT.ICLR = (1<<12);
 
-    moveRows(2);
+    //moveRows(2);
 
     GPIOB->DOUTTGL31_0 = GREEN; // toggle PB27 (minimally intrusive debugging)
 
@@ -519,7 +605,11 @@ int main(void){ // main1
             stopTime = SysTick->VAL;
             Offset = (startTime-stopTime)&0x0FFFFFF; // in bus cycles
 
-  TimerG12_IntArm(80000000/30,2);
+  //TimerG12_IntArm(80000000/30,2);
+  //TimerG0_IntArm(40000000/30000, 1000 ,2);
+  TimerG6_IntArm(2667, 1,2);
+
+
 
 
 //  ST7735_DrawBitmap(0, 50, white_key, 32, 30);
@@ -527,18 +617,54 @@ int main(void){ // main1
 //  ST7735_DrawBitmap(64, 50, black_key, 32, 30);
 //  ST7735_DrawBitmap(96, 50, white_key, 32, 30);
   generateRowArray();
-  startGameRows();
   __enable_irq();
 
   while(1){
 
-      for(int i = bottomRow; i <= topRow; i++){
-          for(int j = 0; j < 4; j++){
-              rowArray[i].getKey(j).redrawKey();
+      if(FSM[stateIndex].mode == 0){
+          if(switchingMode){
+              ST7735_FillScreen(0xFFFF);            // set screen to white
+              //clear whole screen, draw necessary sprites
+              switchingMode = false;
           }
-
+          else if(switchingMenuState){
+              //replace necessary sprites
+              switchingMenuState = false;
+          }
       }
-      adjustVisible();
+      if(FSM[stateIndex].mode == 1){ //initialize if switching mode, otherwise redraw keys
+          if(switchingMode){
+              startGameRows();
+              switchingMode = false;
+          }
+          else{
+              for(int i = bottomRow; i <= topRow; i++){
+                  for(int j = 0; j < 4; j++){
+                      rowArray[i].getKey(j).redrawKey();
+                  }
+
+              }
+              adjustVisible();
+          }
+      }
+      if(FSM[stateIndex].mode == 2){ //always try to redraw key and adjust
+          for(int i = bottomRow; i <= topRow; i++){
+              for(int j = 0; j < 4; j++){
+                  rowArray[i].getKey(j).redrawKey();
+              }
+
+          }
+          adjustVisible();
+      }
+      if(FSM[stateIndex].mode == 3){
+          if(switchingMode){
+              ST7735_FillScreen(0xFFFF);            // set screen to white
+              //clear whole screen, draw necessary sprites
+              switchingMode = false;
+          }
+      }
+
+
   }
 
 
@@ -727,7 +853,7 @@ int main5(void){ // final main
   Sound_Init();  // initialize sound
   TExaS_Init(0,0,&TExaS_LaunchPadLogicPB27PB26); // PB27 and PB26
     // initialize interrupts on TimerG12 at 30 Hz
-  TimerG12_IntArm(80000000/30,2);
+  //TimerG12_IntArm(80000000/30,2);
   // initialize all data structures
   __enable_irq();
 
