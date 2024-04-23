@@ -34,6 +34,8 @@ public:
     void clearKey();
     void setKeyY(int16_t y);
     void switchToClicked();
+    void switchToUnclicked();
+
 
     static const unsigned short white_key[];
     static const unsigned short black_key[];

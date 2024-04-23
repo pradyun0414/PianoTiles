@@ -22,6 +22,7 @@ ORDERED_OBJS += \
 "./SlidePot.o" \
 "./SmallFont.o" \
 "./Sound.o" \
+"./Sprite.o" \
 "./Switch.o" \
 "./TExaS.o" \
 "./Timer.o" \
@@ -29,7 +30,7 @@ ORDERED_OBJS += \
 "./ticlang/startup_mspm0g3507_ticlang.o" \
 "../mspm0g3507.cmd" \
 $(GEN_CMDS__FLAG) \
--Wl,-l"C:/ti/mspm0_sdk_1_20_01_06/source/ti/driverlib/lib/ticlang/m0p/mspm0g1x0x_g3x0x/driverlib.a" \
+-Wl,-l"C:/ti/mspm0_sdk_1_10_01_05/source/ti/driverlib/lib/ticlang/m0p/mspm0g1x0x_g3x0x/driverlib.a" \
 -Wl,-llibc.a \
 
 -include ../makefile.init
@@ -157,16 +158,16 @@ all: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
 PianoTiles.out: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
 	@echo 'Building target: "$@"'
 	@echo 'Invoking: Arm Linker'
-	"C:/ti/ccs1260/ccs/tools/compiler/ti-cgt-armllvm_3.2.1.LTS/bin/tiarmclang.exe" -march=thumbv6m -mcpu=cortex-m0plus -mfloat-abi=soft -mlittle-endian -mthumb -O0 -D__MSPM0G3507__ -gdwarf-3 -Wl,-m"PianoTiles.map" -Wl,--heap_size=512 -Wl,--stack_size=512 -Wl,-i"C:/Users/Prady/OneDrive/Desktop/MSPM0_ValvanoWare/PianoTiles/Debug/syscfg" -Wl,-i"C:/ti/ccs1260/ccs/tools/compiler/ti-cgt-armllvm_3.2.1.LTS/lib" -Wl,--diag_wrap=off -Wl,--display_error_number -Wl,--warn_sections -Wl,--xml_link_info="PianoTiles_linkInfo.xml" -Wl,--rom_model -o "PianoTiles.out" $(ORDERED_OBJS)
+	"C:/ti/ccs1260/ccs/tools/compiler/ti-cgt-armllvm_3.2.1.LTS/bin/tiarmclang.exe" -march=thumbv6m -mcpu=cortex-m0plus -mfloat-abi=soft -mlittle-endian -mthumb -O0 -D__MSPM0G3507__ -gdwarf-3 -Wl,-m"PianoTiles.map" -Wl,--heap_size=512 -Wl,--stack_size=512 -Wl,-i"C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/PianoTiles/Debug/syscfg" -Wl,-i"C:/ti/ccs1260/ccs/tools/compiler/ti-cgt-armllvm_3.2.1.LTS/lib" -Wl,--diag_wrap=off -Wl,--display_error_number -Wl,--warn_sections -Wl,--xml_link_info="PianoTiles_linkInfo.xml" -Wl,--rom_model -o "PianoTiles.out" $(ORDERED_OBJS)
 	@echo 'Finished building target: "$@"'
 	@echo ' '
 
 # Other Targets
 clean:
 	-$(RM) $(EXE_OUTPUTS__QUOTED)
-	-$(RM) "Clock.o" "DAC5.o" "Key.o" "LED.o" "Lab9HMain.o" "LaunchPad.o" "Row.o" "SPI.o" "ST7735.o" "SlidePot.o" "SmallFont.o" "Sound.o" "Switch.o" "TExaS.o" "Timer.o" "images\pipedreams\PipeSound.o" "ticlang\startup_mspm0g3507_ticlang.o" 
+	-$(RM) "Clock.o" "DAC5.o" "Key.o" "LED.o" "Lab9HMain.o" "LaunchPad.o" "Row.o" "SPI.o" "ST7735.o" "SlidePot.o" "SmallFont.o" "Sound.o" "Sprite.o" "Switch.o" "TExaS.o" "Timer.o" "images\pipedreams\PipeSound.o" "ticlang\startup_mspm0g3507_ticlang.o" 
 	-$(RM) "images\pipedreams\PipeSound.d" "ticlang\startup_mspm0g3507_ticlang.d" 
-	-$(RM) "Clock.d" "DAC5.d" "Key.d" "LED.d" "Lab9HMain.d" "LaunchPad.d" "Row.d" "SPI.d" "ST7735.d" "SlidePot.d" "SmallFont.d" "Sound.d" "Switch.d" "TExaS.d" "Timer.d" 
+	-$(RM) "Clock.d" "DAC5.d" "Key.d" "LED.d" "Lab9HMain.d" "LaunchPad.d" "Row.d" "SPI.d" "ST7735.d" "SlidePot.d" "SmallFont.d" "Sound.d" "Sprite.d" "Switch.d" "TExaS.d" "Timer.d" 
 	-@echo 'Finished clean'
 	-@echo ' '
 

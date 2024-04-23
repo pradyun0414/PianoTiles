@@ -300,7 +300,18 @@ void Key::initializeKey(int16_t x, int16_t y, uint16_t width, uint16_t height, c
 
 void Key::drawKey(){
     oldY = y;
-    ST7735_DrawBitmap(x, y + height, keyArray, width, height);
+
+    if(y + height > 140){
+        ST7735_DrawBitmap(x, 140, keyArray, width, 140-y);
+
+    }
+    else if(y < 20){
+        ST7735_DrawBitmap(x, y + height, keyArray + (20 - y)*width, width, y + height - 20);
+    }
+    else{
+        ST7735_DrawBitmap(x, y + height, keyArray, width, height);
+
+    }
 }
 
 void Key::redrawKey(){
@@ -310,12 +321,23 @@ void Key::redrawKey(){
         return;
     else if(oldY < y){
         //__disable_irq();
-        for(uint8_t i = oldY + 1; i <= y; i++){
-            ST7735_DrawFastHLine(this->x, i, this->width, 0xFFFF);
+        for(uint8_t i = oldY ; i < y; i++){
+            if(oldY > 20 && y < 140)
+                ST7735_DrawFastHLine(this->x, i, this->width, 0xFFFF);
         }
         //__enable_irq();
         oldY = this->y;
-        ST7735_DrawBitmap(x, y + height, keyArray, width, height);
+        if(y + height > 140){
+            ST7735_DrawBitmap(x, 140, keyArray, width, 140-y);
+
+        }
+        else if(y < 20){
+            ST7735_DrawBitmap(x, y + height, keyArray + (20 - y)*width, width, y + height - 20);
+        }
+        else{
+            ST7735_DrawBitmap(x, y + height, keyArray, width, height);
+
+        }
 
     }
     else if(oldY > y){
@@ -350,8 +372,17 @@ bool Key::getNeedsDraw(){
     return needsDraw;
 }
 
+const unsigned short* Key::getArray(){
+    return keyArray;
+}
+
+
 void Key::switchToClicked(){
     keyArray = gray_key;
+}
+
+void Key::switchToUnclicked(){
+    keyArray = black_key;
 }
 
 Key::~Key()

@@ -21,6 +21,9 @@
 #include "images/images.h"
 #include "Key.h"
 #include "Row.h"
+#include "Sprite.h"
+
+
 
 
 extern "C" void __disable_irq(void);
@@ -36,6 +39,8 @@ void FSM_Handler();
 
 
 ////////////////////////////////////////////////////////////////
+
+uint32_t lives = 3; // Decremented in FSM handler
 
 // FSM stuff
 
@@ -160,6 +165,8 @@ bool switchingMenuState = false; //needs to redraw menu when switching menu stat
 
 uint32_t startTime,stopTime, Offset, Converttime;
 
+Sprite sprite1;
+
 
 // ****note to ECE319K students****
 // the data sheet says the ADC does not work when clock is 80 MHz
@@ -241,6 +248,7 @@ void startGameRows(){
 
     bottomRow = 0;
     topRow = 3;
+    lives = 3;
 
     //needsRedraw = false;
 }
@@ -248,9 +256,19 @@ void startGameRows(){
 void adjustVisible(){
     if(bottomRow >= songLength)
         return;
+//    if(topRow == songLength - 1 && rowArray[topRow].getRowY() > 20 && rowArray[topRow].getRowY() < 140){//last note is visible
+//        ST7735_DrawFastHLine(0, rowArray[topRow].getRowY() - 2, 128, 0xFFFF);
+//        ST7735_DrawFastHLine(0, rowArray[topRow].getRowY() - 1, 128, 0xFFFF);
+//    }
     if(rowArray[bottomRow].getRowY() > 140){
         rowArray[bottomRow].setOffScreen();
-        rowArray[bottomRow].clearRow();
+        //rowArray[bottomRow].clearRow();
+
+        for(uint8_t i = 0; i < 4; i++){
+            if(rowArray[bottomRow].getKey(i).getArray() == Key::gray_key){
+                rowArray[bottomRow].getKey(i).switchToUnclicked();
+            }
+        }
         bottomRow++;
     }
 
@@ -290,9 +308,12 @@ void TIMG12_IRQHandler(void){uint32_t pos,msg;
     // 4) start sounds
     // 5) set semaphore
     // NO LCD OUTPUT IN INTERRUPT SERVICE ROUTINES
+    //GPIOB->DOUTTGL31_0 |= (1<<16);
 
     startTime = SysTick->VAL;
-    moveRows(2);
+    if(FSM[stateIndex].mode==1 || FSM[stateIndex].mode==2){
+        moveRows(2);
+    }
     stopTime = SysTick->VAL;
     Converttime = ((startTime-stopTime)&0x0FFFFFF)-Offset; // in bus cycles
     FSM_Handler();
@@ -323,7 +344,6 @@ uint32_t risingEdge4 = 0;
 uint32_t fallingEdge4 = 0;
 
 
-uint32_t lives = 3; // Decremented in FSM handler
 
 int mainSwitch(void) {    // main switch testing
 
@@ -361,7 +381,10 @@ void TIMG6_IRQHandler(void)
         g6counter++;
         if(g6counter == 40)
         {
+            g6counter = 0;
+            //GPIOB->DOUTTGL31_0 |= (1<<16);
             // Key 1
+
                     uint32_t userInput1 = GPIOB->DIN31_0 & (1<<12);
                     if(userInput1!=0 && risingEdge1 == 0)
                     {
@@ -376,8 +399,8 @@ void TIMG6_IRQHandler(void)
                         GPIOB->DOUTTGL31_0 |= (1<<16);
                         clickedKeys|=8; // Specific Key
 
-            //            risingEdge1=0;
-            //            fallingEdge1=0;
+//                        risingEdge1=0;
+//                        fallingEdge1=0;
 
                     }
 
@@ -523,17 +546,36 @@ void FSM_Handler() {
         }
 
         // Do nothing otherwise (stay in current state)
+        if(risingEdge1 && fallingEdge1){
+            risingEdge1=0;
+            fallingEdge1=0;
+            clickedKeys = 0;
+        }
+        if(risingEdge2 && fallingEdge2){
+            risingEdge2=0;
+            fallingEdge2=0;
+            clickedKeys = 0;
+        }
+        if(risingEdge3 && fallingEdge3){
+            risingEdge3=0;
+            fallingEdge3=0;
+            clickedKeys = 0;
+        }
+        if(risingEdge4 && fallingEdge4){
+            risingEdge4=0;
+            fallingEdge4=0;
+            clickedKeys = 0;
+        }
+//        risingEdge1=0;
+//        fallingEdge1=0;
+//        risingEdge2=0;
+//        fallingEdge2=0;
+//        risingEdge3=0;
+//        fallingEdge3=0;
+//        risingEdge4=0;
+//        fallingEdge4=0;
 
-        risingEdge1=0;
-        fallingEdge1=0;
-        risingEdge2=0;
-        fallingEdge2=0;
-        risingEdge3=0;
-        fallingEdge3=0;
-        risingEdge4=0;
-        fallingEdge4=0;
-
-        clickedKeys = 0;    // Reset to 0 because done
+//        clickedKeys = 0;    // Reset to 0 because done
     }
 
 
@@ -603,17 +645,48 @@ void FSM_Handler() {
             switchingMode = true;
         }
 
-        risingEdge1=0;
-        fallingEdge1=0;
-        risingEdge2=0;
-        fallingEdge2=0;
-        risingEdge3=0;
-        fallingEdge3=0;
-        risingEdge4=0;
-        fallingEdge4=0;
-
-        clickedKeys = 0;    // Reset to 0 because done
+        if(risingEdge1 && fallingEdge1){
+            risingEdge1=0;
+            fallingEdge1=0;
+            clickedKeys = 0;
+        }
+        if(risingEdge2 && fallingEdge2){
+            risingEdge2=0;
+            fallingEdge2=0;
+            clickedKeys = 0;
+        }
+        if(risingEdge3 && fallingEdge3){
+            risingEdge3=0;
+            fallingEdge3=0;
+            clickedKeys = 0;
+        }
+        if(risingEdge4 && fallingEdge4){
+            risingEdge4=0;
+            fallingEdge4=0;
+            clickedKeys = 0;
+        }
+//        risingEdge1=0;
+//        fallingEdge1=0;
+//        risingEdge2=0;
+//        fallingEdge2=0;
+//        risingEdge3=0;
+//        fallingEdge3=0;
+//        risingEdge4=0;
+//        fallingEdge4=0;
+//
+//        clickedKeys = 0;    // Reset to 0 because done
     }
+
+//    risingEdge1=0;
+//    fallingEdge1=0;
+//    risingEdge2=0;
+//    fallingEdge2=0;
+//    risingEdge3=0;
+//    fallingEdge3=0;
+//    risingEdge4=0;
+//    fallingEdge4=0;
+//
+//    clickedKeys = 0;    // Reset to 0 because done
 
 
 
@@ -732,27 +805,85 @@ int main(void){ // main1
 
       if(FSM[stateIndex].mode == 0){
           if(switchingMode){
-              ST7735_FillScreen(0xFFFF);            // set screen to white
+              ST7735_FillScreen(0xFEB7);            // set screen to white
+              //ST7735_FillScreen(0xFFFF);
               //clear whole screen, draw necessary sprites
               switchingMode = false;
+              ST7735_DrawBitmap(11, 30, Sprite::PianoTilesTitle, 106, 20);
+              ST7735_DrawBitmap(44, 145, Sprite::PlayButton, 40, 20);
+
+
+              if(stateIndex == 0){
+                  ST7735_DrawBitmap(44, 65, Sprite::EnglishButton, 40, 20);
+                  ST7735_DrawBitmap(44, 100, Sprite::Song1English, 40, 20);
+
+              }
+              if(stateIndex == 1){
+                  ST7735_DrawBitmap(44, 65, Sprite::SpanishButton, 40, 20);
+                  ST7735_DrawBitmap(44, 100, Sprite::Song1Spanish, 40, 20);
+              }
+              if(stateIndex == 2){
+                  ST7735_DrawBitmap(44, 65, Sprite::EnglishButton, 40, 20);
+                  ST7735_DrawBitmap(44, 100, Sprite::Song2English, 40, 20);
+              }
+              if(stateIndex == 3){
+                  ST7735_DrawBitmap(44, 65, Sprite::SpanishButton, 40, 20);
+                  ST7735_DrawBitmap(44, 100, Sprite::Song2Spanish, 40, 20);
+              }
           }
           else if(switchingMenuState){
               //replace necessary sprites
               switchingMenuState = false;
+              if(stateIndex == 0){
+                  ST7735_DrawBitmap(44, 65, Sprite::EnglishButton, 40, 20);
+                  ST7735_DrawBitmap(44, 100, Sprite::Song1English, 40, 20);
+
+              }
+              if(stateIndex == 1){
+                  ST7735_DrawBitmap(44, 65, Sprite::SpanishButton, 40, 20);
+                  ST7735_DrawBitmap(44, 100, Sprite::Song1Spanish, 40, 20);
+              }
+              if(stateIndex == 2){
+                  ST7735_DrawBitmap(44, 65, Sprite::EnglishButton, 40, 20);
+                  ST7735_DrawBitmap(44, 100, Sprite::Song2English, 40, 20);
+              }
+              if(stateIndex == 3){
+                  ST7735_DrawBitmap(44, 65, Sprite::SpanishButton, 40, 20);
+                  ST7735_DrawBitmap(44, 100, Sprite::Song2Spanish, 40, 20);
+              }
           }
       }
       if(FSM[stateIndex].mode == 1){ //initialize if switching mode, otherwise redraw keys
           if(switchingMode){
               startGameRows();
               switchingMode = false;
+              ST7735_DrawBitmap(0, 160, Sprite::BottomBlock, 128, 20);
+              ST7735_DrawBitmap(0, 20, Sprite::TopBlock, 128, 20);
+
           }
           else{
+
               for(int i = bottomRow; i <= topRow; i++){
                   for(int j = 0; j < 4; j++){
                       rowArray[i].getKey(j).redrawKey();
                   }
+                  if(i == bottomRow){
+                      //ST7735_DrawBitmap(0, 160, Sprite::BottomBlock, 128, 20);
+                  }
+                  if(i == topRow){
+                     // ST7735_DrawBitmap(0, 20, Sprite::TopBlock, 128, 20);
+                  }
 
               }
+              for(int i = 3; i > 0; i--){
+                  if(lives < i){
+                      ST7735_DrawBitmap(128 - i * 10, 10, Sprite::EmptyHeart, 8, 8);
+                  }
+                  else{
+                      ST7735_DrawBitmap(128 - i * 10, 10, Sprite::Heart, 8, 8);
+                  }
+              }
+
               adjustVisible();
           }
       }
@@ -762,6 +893,16 @@ int main(void){ // main1
                   rowArray[i].getKey(j).redrawKey();
               }
 
+          }
+          ST7735_DrawBitmap(0, 20, Sprite::TopBlock, 128, 20);
+          ST7735_DrawBitmap(0, 160, Sprite::BottomBlock, 128, 20);
+          for(int i = 3; i > 0; i--){
+              if(lives < i){
+                  ST7735_DrawBitmap(128 - i * 10, 10, Sprite::EmptyHeart, 8, 8);
+              }
+              else{
+                  ST7735_DrawBitmap(128 - i * 10, 10, Sprite::Heart, 8, 8);
+              }
           }
           adjustVisible();
       }
