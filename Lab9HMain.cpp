@@ -34,7 +34,16 @@ extern "C" void TIMG6_IRQHandler(void);
 #define T33ms 2666666
 
 
+////////////////////////////////////////////////////////////////
 
+
+
+
+
+
+
+
+////////////////////////////////////////////////////////////////
 
 uint8_t song[] = {15, 3, 5, 0, 7, 8, 11, 14, 15, 14, 11, 5, 10, 12, 1, 10, 7, 0, 13, 8, 4, 6, 9, 4, 10, 14, 5, 5, 1, 0, 8, 7, 13, 1, 10, 4, 12, 14, 8, 1, 0, 10, 6, 10, 11, 12, 7, 6, 15, 9};
 uint16_t songLength = 50;
@@ -191,6 +200,10 @@ void TIMG6_IRQHandler(void){uint32_t pos,msg;
 
  }
 }
+
+
+
+
 //uint8_t song[] = {15, 3, 5, 0, 7, 8, 11, 14, 15, 14, 11, 5, 10, 12, 1, 10, 7, 0, 13, 8, 4, 6, 9, 4, 10, 14, 5, 5, 1, 0, 8, 7, 13, 1, 10, 4, 12, 14, 8, 1, 0, 10, 6, 10, 11, 12, 7, 6, 15, 9};
 //uint16_t songLength = 50;
 //uint16_t topRow = 0; //topRow is a later note, so higher index
@@ -257,7 +270,7 @@ void TIMG12_IRQHandler(void)
         if(risingEdge1==1 && fallingEdge1==1)
         {
             GPIOB->DOUTTGL31_0 |= (1<<16);
-            clickedKeys+=8; // Specific Key
+            clickedKeys|=8; // Specific Key
 
 //            risingEdge1=0;
 //            fallingEdge1=0;
@@ -278,7 +291,7 @@ void TIMG12_IRQHandler(void)
         if(risingEdge2==1 && fallingEdge2==1)
         {
             GPIOA->DOUTTGL31_0 |= (1<<25);
-            clickedKeys+=4; // Specific Key
+            clickedKeys|=4; // Specific Key
 
 //            risingEdge2=0;
 //            fallingEdge2=0;
@@ -299,7 +312,7 @@ void TIMG12_IRQHandler(void)
         if(risingEdge3==1 && fallingEdge3==1)
         {
             GPIOA->DOUTTGL31_0 |= (1<<26);
-            clickedKeys+=2; // Specific Key
+            clickedKeys|=2; // Specific Key
 
 //            risingEdge3=0;
 //            fallingEdge3=0;
@@ -321,7 +334,7 @@ void TIMG12_IRQHandler(void)
         if(risingEdge4==1 && fallingEdge4==1)
         {
             GPIOA->DOUTTGL31_0 |= (1<<27);
-            clickedKeys+=1; // Specific Key
+            clickedKeys|=1; // Specific Key
 
 //            risingEdge4=0;
 //            fallingEdge4=0;
@@ -346,7 +359,91 @@ struct State {
 };
 
 uint32_t stateIndex;
-State FSM[50];
+State FSM[56] =         // CHANGE FSM SIZE!!!
+{
+
+     {0, 0, 0, {1, 2, 8, 0}},     // English Menu Song 1           0
+     {0, 0, 0, {0, 3, 8, 1}},     // Spanish Menu Song 1           1         MAKE SURE THE 8 IS THE FIRST INDEX OF SONG 1
+     {0, 0, 0, {3, 0, 56, 2}},    // English Menu Song 2           2         REPLACE THE 40 WITH STARTING INDEX OF SONG 2
+     {0, 0, 0, {2, 1, 56, 3}},    // Spanish Menu Song 2           3
+     {3, 0, 0, {0, 0, 0, 0}},     // English Lose                  4
+     {3, 0, 0, {1, 1, 1, 1}},     // Spanish Lose                  5
+     {3, 0, 0, {0, 0, 0, 0}},     // English Win                   6
+     {3, 0, 0, {1, 1, 1, 1}},     // Spanish Win                   7
+
+     // For empty space, make sure 0 for frequency works. If not, add a conditional where it just doesn't call the SoundStart method if frequency is 0
+
+     {1, 8, 999, {9, 4, 5, 0}},               // First state of Song 1                    8
+     {1, 8, 999, {10, 4, 5, 0}},              //                                          9
+     {1, 2, 999, {11, 4, 5, 0}},              //                                          10
+     {1, 2, 999, {12, 4, 5, 0}},              //                                          11
+     {1, 1, 999, {13, 4, 5, 0}},              //                                          12
+     {1, 1, 999, {14, 4, 5, 0}},              //                                          13
+     {1, 10, 999, {15, 4, 5, 0}},             //                                          14
+     {1, 0, 0, {16, 4, 5, 0}},                //                                          15
+
+     {1, 1, 999, {17, 4, 5, 0}},              //                                          16
+     {1, 1, 999, {18, 4, 5, 0}},              //                                          17
+     {1, 2, 999, {19, 4, 5, 0}},              //                                          18
+     {1, 2, 999, {20, 4, 5, 0}},              //                                          19
+     {1, 4, 999, {21, 4, 5, 0}},              //                                          20
+     {1, 4, 999, {22, 4, 5, 0}},              //                                          21
+     {1, 10, 999, {23, 4, 5, 0}},             //                                          22
+     {1, 0, 0, {24, 4, 5, 0}},                //                                          23
+
+     {1, 2, 999, {25, 4, 5, 0}},              //                                          24
+     {1, 2, 999, {26, 4, 5, 0}},              //                                          25
+     {1, 4, 999, {27, 4, 5, 0}},              //                                          26
+     {1, 4, 999, {28, 4, 5, 0}},              //                                          27
+     {1, 8, 999, {29, 4, 5, 0}},              //                                          28
+     {1, 8, 999, {30, 4, 5, 0}},              //                                          29
+     {1, 5, 999, {31, 4, 5, 0}},              //                                          30
+     {1, 0, 0, {32, 4, 5, 0}},                //                                          31
+
+     {1, 2, 999, {33, 4, 5, 0}},              //                                          32
+     {1, 2, 999, {34, 4, 5, 0}},              //                                          33
+     {1, 4, 999, {35, 4, 5, 0}},              //                                          34
+     {1, 4, 999, {36, 4, 5, 0}},              //                                          35
+     {1, 8, 999, {37, 4, 5, 0}},              //                                          36
+     {1, 8, 999, {38, 4, 5, 0}},              //                                          37
+     {1, 5, 999, {39, 4, 5, 0}},              //                                          38
+     {1, 0, 0, {40, 4, 5, 0}},                //                                          39
+
+     {1, 8, 999, {41, 4, 5, 0}},              //                                          40
+     {1, 8, 999, {42, 4, 5, 0}},              //                                          41
+     {1, 2, 999, {43, 4, 5, 0}},              //                                          42
+     {1, 2, 999, {44, 4, 5, 0}},              //                                          43
+     {1, 1, 999, {45, 4, 5, 0}},              //                                          44
+     {1, 1, 999, {46, 4, 5, 0}},              //                                          45
+     {1, 10, 999, {47, 4, 5, 0}},             //                                          46
+     {1, 0, 0, {48, 4, 5, 0}},                //                                          47
+
+     {1, 1, 999, {49, 4, 5, 0}},              //                                          48
+     {1, 1, 999, {50, 4, 5, 0}},              //                                          49
+     {1, 2, 999, {51, 4, 5, 0}},              //                                          50
+     {1, 2, 999, {52, 4, 5, 0}},              //                                          51
+     {1, 4, 999, {53, 4, 5, 0}},              //                                          52
+     {1, 4, 999, {54, 4, 5, 0}},              //                                          53
+     {1, 15, 999, {55, 4, 5, 0}},             //                                          54
+     {2, 0, 0, {4, 5, 6, 7}},                 // LastNote1                                55
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//     {},               // First state of Song 2
+//     {},
+//     {},
+//     {},
+//     {},
+//     {},
+//     {},
+//     {},
+//     {},
+//     {},
+//     {},               // Last Note 2
+
+
+};
 
 // FSM INDICES:
 // Game next 0 for next note, 1 for english lose, 2 for spanish lose
