@@ -28,6 +28,7 @@ extern "C" void __enable_irq(void);
 extern "C" void TIMG12_IRQHandler(void);
 extern "C" void TIMG6_IRQHandler(void);
 
+void FSM_Handler();
 
 #define B 0x0000
 #define W 0x0FFF
@@ -36,23 +37,125 @@ extern "C" void TIMG6_IRQHandler(void);
 
 ////////////////////////////////////////////////////////////////
 
+// FSM stuff
+
+bool language = false; // false for English, true for Spanish
+uint32_t stateIndex = 0;
+
+struct State {
+
+    uint32_t mode;  // 0 for menu, 1 for game, 2 lastnote, 3 done
+    uint32_t outputKeys;  // indicates what keys should be pressed
+    uint32_t noteFrequency; // indicates the frequency of the note being played
+    uint32_t next[4];
+
+};
 
 
+State FSM[56] =         // CHANGE FSM SIZE!!!
+{
+
+     {0, 0, 0, {1, 2, 8, 0}},     // English Menu Song 1           0
+     {0, 0, 0, {0, 3, 8, 1}},     // Spanish Menu Song 1           1         MAKE SURE THE 8 IS THE FIRST INDEX OF SONG 1
+     {0, 0, 0, {3, 0, 56, 2}},    // English Menu Song 2           2         REPLACE THE 40 WITH STARTING INDEX OF SONG 2
+     {0, 0, 0, {2, 1, 56, 3}},    // Spanish Menu Song 2           3
+     {3, 0, 0, {0, 0, 0, 0}},     // English Lose                  4
+     {3, 0, 0, {1, 1, 1, 1}},     // Spanish Lose                  5
+     {3, 0, 0, {0, 0, 0, 0}},     // English Win                   6
+     {3, 0, 0, {1, 1, 1, 1}},     // Spanish Win                   7
+
+     // For empty space, make sure 0 for frequency works. If not, add a conditional where it just doesn't call the SoundStart method if frequency is 0
+
+     {1, 8, 999, {9, 4, 5, 0}},               // First state of Song 1                    8
+     {1, 8, 999, {10, 4, 5, 0}},              //                                          9
+     {1, 2, 999, {11, 4, 5, 0}},              //                                          10
+     {1, 2, 999, {12, 4, 5, 0}},              //                                          11
+     {1, 1, 999, {13, 4, 5, 0}},              //                                          12
+     {1, 1, 999, {14, 4, 5, 0}},              //                                          13
+     {1, 10, 999, {15, 4, 5, 0}},             //                                          14
+     {1, 0, 0, {16, 4, 5, 0}},                //                                          15
+
+     {1, 1, 999, {17, 4, 5, 0}},              //                                          16
+     {1, 1, 999, {18, 4, 5, 0}},              //                                          17
+     {1, 2, 999, {19, 4, 5, 0}},              //                                          18
+     {1, 2, 999, {20, 4, 5, 0}},              //                                          19
+     {1, 4, 999, {21, 4, 5, 0}},              //                                          20
+     {1, 4, 999, {22, 4, 5, 0}},              //                                          21
+     {1, 10, 999, {23, 4, 5, 0}},             //                                          22
+     {1, 0, 0, {24, 4, 5, 0}},                //                                          23
+
+     {1, 2, 999, {25, 4, 5, 0}},              //                                          24
+     {1, 2, 999, {26, 4, 5, 0}},              //                                          25
+     {1, 4, 999, {27, 4, 5, 0}},              //                                          26
+     {1, 4, 999, {28, 4, 5, 0}},              //                                          27
+     {1, 8, 999, {29, 4, 5, 0}},              //                                          28
+     {1, 8, 999, {30, 4, 5, 0}},              //                                          29
+     {1, 5, 999, {31, 4, 5, 0}},              //                                          30
+     {1, 0, 0, {32, 4, 5, 0}},                //                                          31
+
+     {1, 2, 999, {33, 4, 5, 0}},              //                                          32
+     {1, 2, 999, {34, 4, 5, 0}},              //                                          33
+     {1, 4, 999, {35, 4, 5, 0}},              //                                          34
+     {1, 4, 999, {36, 4, 5, 0}},              //                                          35
+     {1, 8, 999, {37, 4, 5, 0}},              //                                          36
+     {1, 8, 999, {38, 4, 5, 0}},              //                                          37
+     {1, 5, 999, {39, 4, 5, 0}},              //                                          38
+     {1, 0, 0, {40, 4, 5, 0}},                //                                          39
+
+     {1, 8, 999, {41, 4, 5, 0}},              //                                          40
+     {1, 8, 999, {42, 4, 5, 0}},              //                                          41
+     {1, 2, 999, {43, 4, 5, 0}},              //                                          42
+     {1, 2, 999, {44, 4, 5, 0}},              //                                          43
+     {1, 1, 999, {45, 4, 5, 0}},              //                                          44
+     {1, 1, 999, {46, 4, 5, 0}},              //                                          45
+     {1, 10, 999, {47, 4, 5, 0}},             //                                          46
+     {1, 0, 0, {48, 4, 5, 0}},                //                                          47
+
+     {1, 1, 999, {49, 4, 5, 0}},              //                                          48
+     {1, 1, 999, {50, 4, 5, 0}},              //                                          49
+     {1, 2, 999, {51, 4, 5, 0}},              //                                          50
+     {1, 2, 999, {52, 4, 5, 0}},              //                                          51
+     {1, 4, 999, {53, 4, 5, 0}},              //                                          52
+     {1, 4, 999, {54, 4, 5, 0}},              //                                          53
+     {1, 15, 999, {55, 4, 5, 0}},             //                                          54
+     {2, 0, 0, {4, 5, 6, 7}},                 // LastNote1                                55
 
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//     {},               // First state of Song 2
+//     {},
+//     {},
+//     {},
+//     {},
+//     {},
+//     {},
+//     {},
+//     {},
+//     {},
+//     {},               // Last Note 2
+
+
+};
+
+// FSM INDICES:
+// Game next 0 for next note, 1 for english lose, 2 for spanish lose
+// Last note next: 0 english lose, 1 spanish lose, 2 english win, 3 spanish win
+// Menu, 0 toggle language, 1 toggle song, 2 start game
+// Done, click anything means go back to menu
 
 
 ////////////////////////////////////////////////////////////////
 
-uint8_t song[] = {15, 3, 5, 0, 7, 8, 11, 14, 15, 14, 11, 5, 10, 12, 1, 10, 7, 0, 13, 8, 4, 6, 9, 4, 10, 14, 5, 5, 1, 0, 8, 7, 13, 1, 10, 4, 12, 14, 8, 1, 0, 10, 6, 10, 11, 12, 7, 6, 15, 9};
-uint16_t songLength = 50;
+uint8_t song[] = {8, 8, 2, 2, 1, 1, 10, 0, 1, 1, 2, 2, 4, 4, 10, 0, 2, 2, 4, 4, 8, 8, 5, 0, 2, 2, 4, 4, 8, 8, 5, 0, 8, 8, 2, 2, 1, 1, 10, 0, 1, 1, 2, 2, 4, 4, 15, 0};
+uint16_t songLength = 48;
 uint16_t topRow = 0; //topRow is a later note, so higher index
 uint16_t bottomRow = 0;
-Row rowArray[50];
+Row rowArray[48];
+
 //bool needsRedraw;
 uint16_t g6counter = 0;
-bool switchingMode = false; //needs mode initialization if true
+bool switchingMode = true; //needs mode initialization if true
 bool switchingMenuState = false; //needs to redraw menu when switching menu states
 
 uint32_t startTime,stopTime, Offset, Converttime;
@@ -176,8 +279,8 @@ void moveRows(int16_t y){
 
 // games  engine runs at 30Hz
 
-void TIMG6_IRQHandler(void){uint32_t pos,msg;
-  if((TIMG6->CPU_INT.IIDX) == 1) { // this will acknowledge
+void TIMG12_IRQHandler(void){uint32_t pos,msg;
+  if((TIMG12->CPU_INT.IIDX) == 1) { // this will acknowledge
     GPIOB->DOUTTGL31_0 = GREEN; // toggle PB27 (minimally intrusive debugging)
     GPIOB->DOUTTGL31_0 = GREEN; // toggle PB27 (minimally intrusive debugging)
 // game engine goes here
@@ -187,15 +290,13 @@ void TIMG6_IRQHandler(void){uint32_t pos,msg;
     // 4) start sounds
     // 5) set semaphore
     // NO LCD OUTPUT IN INTERRUPT SERVICE ROUTINES
-    g6counter++;
 
-    if(g6counter == 1000){
-        startTime = SysTick->VAL;
-        moveRows(2);
-        stopTime = SysTick->VAL;
-        Converttime = ((startTime-stopTime)&0x0FFFFFF)-Offset; // in bus cycles
-        g6counter = 0;
-    }
+    startTime = SysTick->VAL;
+    moveRows(2);
+    stopTime = SysTick->VAL;
+    Converttime = ((startTime-stopTime)&0x0FFFFFF)-Offset; // in bus cycles
+    FSM_Handler();
+
 
 
  }
@@ -232,7 +333,7 @@ int mainSwitch(void) {    // main switch testing
 
     IOMUX->SECCFG.PINCM[PB12INDEX] = 0x00040081;     // PB12 Input Key1
     IOMUX->SECCFG.PINCM[PB17INDEX] = 0x00040081;     // PB17 Input Key2
-    IOMUX->SECCFG.PINCM[PA13INDEX] = 0x00040081;     // PA13 Input Key3
+    IOMUX->SECCFG.PINCM[PA31INDEX] = 0x00040081;     // PA31 Input Key3
     IOMUX->SECCFG.PINCM[PA12INDEX] = 0x00040081;     // PA12 Input Key4
 
 
@@ -253,203 +354,100 @@ int mainSwitch(void) {    // main switch testing
 
 uint32_t clickedKeys = 0;
 
-void TIMG12_IRQHandler(void)
+void TIMG6_IRQHandler(void)
 {
-    if((TIMG12->CPU_INT.IIDX) == 1) {
+    if((TIMG6->CPU_INT.IIDX) == 1) {
 
-        // Key 1
-        uint32_t userInput1 = GPIOB->DIN31_0 & (1<<12);
-        if(userInput1!=0 && risingEdge1 == 0)
+        g6counter++;
+        if(g6counter == 40)
         {
-            risingEdge1=1;
+            // Key 1
+                    uint32_t userInput1 = GPIOB->DIN31_0 & (1<<12);
+                    if(userInput1!=0 && risingEdge1 == 0)
+                    {
+                        risingEdge1=1;
+                    }
+                    if(userInput1==0 && risingEdge1 ==1)
+                    {
+                        fallingEdge1=1;
+                    }
+                    if(risingEdge1==1 && fallingEdge1==1)
+                    {
+                        GPIOB->DOUTTGL31_0 |= (1<<16);
+                        clickedKeys|=8; // Specific Key
+
+            //            risingEdge1=0;
+            //            fallingEdge1=0;
+
+                    }
+
+                    // Key 2
+
+                    uint32_t userInput2 = GPIOB->DIN31_0 & (1<<17);
+                    if(userInput2!=0 && risingEdge2 == 0)
+                    {
+                        risingEdge2=1;
+                    }
+                    if(userInput2==0 && risingEdge2 ==1)
+                    {
+                        fallingEdge2=1;
+                    }
+                    if(risingEdge2==1 && fallingEdge2==1)
+                    {
+                        GPIOA->DOUTTGL31_0 |= (1<<25);
+                        clickedKeys|=4; // Specific Key
+
+            //            risingEdge2=0;
+            //            fallingEdge2=0;
+
+                    }
+
+                    // Key 3
+
+                    uint32_t userInput3 = GPIOA->DIN31_0 & (1<<31);
+                    if(userInput3!=0 && risingEdge3 == 0)
+                    {
+                        risingEdge3=1;
+                    }
+                    if(userInput3==0 && risingEdge3 ==1)
+                    {
+                        fallingEdge3=1;
+                    }
+                    if(risingEdge3==1 && fallingEdge3==1)
+                    {
+                        GPIOA->DOUTTGL31_0 |= (1<<26);
+                        clickedKeys|=2; // Specific Key
+
+            //            risingEdge3=0;
+            //            fallingEdge3=0;
+
+                    }
+
+
+                    // Key 4
+
+                    uint32_t userInput4 = GPIOA->DIN31_0 & (1<<12);
+                    if(userInput4!=0 && risingEdge4 == 0)
+                    {
+                        risingEdge4=1;
+                    }
+                    if(userInput4==0 && risingEdge4 ==1)
+                    {
+                        fallingEdge4=1;
+                    }
+                    if(risingEdge4==1 && fallingEdge4==1)
+                    {
+                        GPIOA->DOUTTGL31_0 |= (1<<27);
+                        clickedKeys|=1; // Specific Key
+
+            //            risingEdge4=0;
+            //            fallingEdge4=0;
+
+                    }
         }
-        if(userInput1==0 && risingEdge1 ==1)
-        {
-            fallingEdge1=1;
-        }
-        if(risingEdge1==1 && fallingEdge1==1)
-        {
-            GPIOB->DOUTTGL31_0 |= (1<<16);
-            clickedKeys|=8; // Specific Key
-
-//            risingEdge1=0;
-//            fallingEdge1=0;
-
-        }
-
-        // Key 2
-
-        uint32_t userInput2 = GPIOB->DIN31_0 & (1<<17);
-        if(userInput2!=0 && risingEdge2 == 0)
-        {
-            risingEdge2=1;
-        }
-        if(userInput2==0 && risingEdge2 ==1)
-        {
-            fallingEdge2=1;
-        }
-        if(risingEdge2==1 && fallingEdge2==1)
-        {
-            GPIOA->DOUTTGL31_0 |= (1<<25);
-            clickedKeys|=4; // Specific Key
-
-//            risingEdge2=0;
-//            fallingEdge2=0;
-
-        }
-
-        // Key 3
-
-        uint32_t userInput3 = GPIOA->DIN31_0 & (1<<13);
-        if(userInput3!=0 && risingEdge3 == 0)
-        {
-            risingEdge3=1;
-        }
-        if(userInput3==0 && risingEdge3 ==1)
-        {
-            fallingEdge3=1;
-        }
-        if(risingEdge3==1 && fallingEdge3==1)
-        {
-            GPIOA->DOUTTGL31_0 |= (1<<26);
-            clickedKeys|=2; // Specific Key
-
-//            risingEdge3=0;
-//            fallingEdge3=0;
-
-        }
-
-
-        // Key 4
-
-        uint32_t userInput4 = GPIOA->DIN31_0 & (1<<12);
-        if(userInput4!=0 && risingEdge4 == 0)
-        {
-            risingEdge4=1;
-        }
-        if(userInput4==0 && risingEdge4 ==1)
-        {
-            fallingEdge4=1;
-        }
-        if(risingEdge4==1 && fallingEdge4==1)
-        {
-            GPIOA->DOUTTGL31_0 |= (1<<27);
-            clickedKeys|=1; // Specific Key
-
-//            risingEdge4=0;
-//            fallingEdge4=0;
-
-        }
-
     }
-
 }
 
-// FSM stuff
-
-bool language = false; // false for English, true for Spanish
-
-struct State {
-
-    uint32_t mode;  // 0 for menu, 1 for game, 2 lastnote, 3 done
-    uint32_t outputKeys;  // indicates what keys should be pressed
-    uint32_t noteFrequency; // indicates the frequency of the note being played
-    uint32_t next[4];
-
-};
-
-uint32_t stateIndex;
-State FSM[56] =         // CHANGE FSM SIZE!!!
-{
-
-     {0, 0, 0, {1, 2, 8, 0}},     // English Menu Song 1           0
-     {0, 0, 0, {0, 3, 8, 1}},     // Spanish Menu Song 1           1         MAKE SURE THE 8 IS THE FIRST INDEX OF SONG 1
-     {0, 0, 0, {3, 0, 56, 2}},    // English Menu Song 2           2         REPLACE THE 40 WITH STARTING INDEX OF SONG 2
-     {0, 0, 0, {2, 1, 56, 3}},    // Spanish Menu Song 2           3
-     {3, 0, 0, {0, 0, 0, 0}},     // English Lose                  4
-     {3, 0, 0, {1, 1, 1, 1}},     // Spanish Lose                  5
-     {3, 0, 0, {0, 0, 0, 0}},     // English Win                   6
-     {3, 0, 0, {1, 1, 1, 1}},     // Spanish Win                   7
-
-     // For empty space, make sure 0 for frequency works. If not, add a conditional where it just doesn't call the SoundStart method if frequency is 0
-
-     {1, 8, 999, {9, 4, 5, 0}},               // First state of Song 1                    8
-     {1, 8, 999, {10, 4, 5, 0}},              //                                          9
-     {1, 2, 999, {11, 4, 5, 0}},              //                                          10
-     {1, 2, 999, {12, 4, 5, 0}},              //                                          11
-     {1, 1, 999, {13, 4, 5, 0}},              //                                          12
-     {1, 1, 999, {14, 4, 5, 0}},              //                                          13
-     {1, 10, 999, {15, 4, 5, 0}},             //                                          14
-     {1, 0, 0, {16, 4, 5, 0}},                //                                          15
-
-     {1, 1, 999, {17, 4, 5, 0}},              //                                          16
-     {1, 1, 999, {18, 4, 5, 0}},              //                                          17
-     {1, 2, 999, {19, 4, 5, 0}},              //                                          18
-     {1, 2, 999, {20, 4, 5, 0}},              //                                          19
-     {1, 4, 999, {21, 4, 5, 0}},              //                                          20
-     {1, 4, 999, {22, 4, 5, 0}},              //                                          21
-     {1, 10, 999, {23, 4, 5, 0}},             //                                          22
-     {1, 0, 0, {24, 4, 5, 0}},                //                                          23
-
-     {1, 2, 999, {25, 4, 5, 0}},              //                                          24
-     {1, 2, 999, {26, 4, 5, 0}},              //                                          25
-     {1, 4, 999, {27, 4, 5, 0}},              //                                          26
-     {1, 4, 999, {28, 4, 5, 0}},              //                                          27
-     {1, 8, 999, {29, 4, 5, 0}},              //                                          28
-     {1, 8, 999, {30, 4, 5, 0}},              //                                          29
-     {1, 5, 999, {31, 4, 5, 0}},              //                                          30
-     {1, 0, 0, {32, 4, 5, 0}},                //                                          31
-
-     {1, 2, 999, {33, 4, 5, 0}},              //                                          32
-     {1, 2, 999, {34, 4, 5, 0}},              //                                          33
-     {1, 4, 999, {35, 4, 5, 0}},              //                                          34
-     {1, 4, 999, {36, 4, 5, 0}},              //                                          35
-     {1, 8, 999, {37, 4, 5, 0}},              //                                          36
-     {1, 8, 999, {38, 4, 5, 0}},              //                                          37
-     {1, 5, 999, {39, 4, 5, 0}},              //                                          38
-     {1, 0, 0, {40, 4, 5, 0}},                //                                          39
-
-     {1, 8, 999, {41, 4, 5, 0}},              //                                          40
-     {1, 8, 999, {42, 4, 5, 0}},              //                                          41
-     {1, 2, 999, {43, 4, 5, 0}},              //                                          42
-     {1, 2, 999, {44, 4, 5, 0}},              //                                          43
-     {1, 1, 999, {45, 4, 5, 0}},              //                                          44
-     {1, 1, 999, {46, 4, 5, 0}},              //                                          45
-     {1, 10, 999, {47, 4, 5, 0}},             //                                          46
-     {1, 0, 0, {48, 4, 5, 0}},                //                                          47
-
-     {1, 1, 999, {49, 4, 5, 0}},              //                                          48
-     {1, 1, 999, {50, 4, 5, 0}},              //                                          49
-     {1, 2, 999, {51, 4, 5, 0}},              //                                          50
-     {1, 2, 999, {52, 4, 5, 0}},              //                                          51
-     {1, 4, 999, {53, 4, 5, 0}},              //                                          52
-     {1, 4, 999, {54, 4, 5, 0}},              //                                          53
-     {1, 15, 999, {55, 4, 5, 0}},             //                                          54
-     {2, 0, 0, {4, 5, 6, 7}},                 // LastNote1                                55
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-
-//     {},               // First state of Song 2
-//     {},
-//     {},
-//     {},
-//     {},
-//     {},
-//     {},
-//     {},
-//     {},
-//     {},
-//     {},               // Last Note 2
-
-
-};
-
-// FSM INDICES:
-// Game next 0 for next note, 1 for english lose, 2 for spanish lose
-// Last note next: 0 english lose, 1 spanish lose, 2 english win, 3 spanish win
-// Menu, 0 toggle language, 1 toggle song, 2 start game
-// Done, click anything means go back to menu
 
 // Will control the state, gets called each time the "row reached bottom" semaphore is set (indicating the player should have clicked the right keys by now)
 void FSM_Handler() {
@@ -695,18 +693,32 @@ int main(void){ // main1
   ST7735_FillScreen(0xFFFF);            // set screen to black
 
   SysTick->LOAD = 0xFFFFFF;    // max
-    SysTick->VAL = 0;            // any write to current clears it
-    SysTick->CTRL = 0x00000005;  // enable SysTick with core clock
+  SysTick->VAL = 0;            // any write to current clears it
+  SysTick->CTRL = 0x00000005;  // enable SysTick with core clock
 
-    startTime = SysTick->VAL;
-            stopTime = SysTick->VAL;
-            Offset = (startTime-stopTime)&0x0FFFFFF; // in bus cycles
+  startTime = SysTick->VAL;
+  stopTime = SysTick->VAL;
+  Offset = (startTime-stopTime)&0x0FFFFFF; // in bus cycles
 
-  //TimerG12_IntArm(80000000/30,2);
+  TimerG12_IntArm(80000000/30,1);
   //TimerG0_IntArm(40000000/30000, 1000 ,2);
-  TimerG6_IntArm(2667, 1,2);
+//  TimerG6_IntArm(2667, 1,2);
+  TimerG6_IntArm(20000,1,2);
+
+  IOMUX->SECCFG.PINCM[PB12INDEX] = 0x00040081;     // PB12 Input Key1
+  IOMUX->SECCFG.PINCM[PB17INDEX] = 0x00040081;     // PB17 Input Key2
+  IOMUX->SECCFG.PINCM[PA31INDEX] = 0x00040081;     // PA31 Input Key3
+  IOMUX->SECCFG.PINCM[PA12INDEX] = 0x00040081;     // PA12 Input Key4
 
 
+  IOMUX->SECCFG.PINCM[PB16INDEX] =  0x00000081;    // Output Key1
+  GPIOB->DOE31_0 |= (1<<16);  // Output Enable
+  IOMUX->SECCFG.PINCM[PA25INDEX] =  0x00000081;    // Output Key2
+  GPIOA->DOE31_0 |= (1<<25);  // Output Enable
+  IOMUX->SECCFG.PINCM[PA26INDEX] =  0x00000081;    // Output Key3
+  GPIOA->DOE31_0 |= (1<<26);  // Output Enable
+  IOMUX->SECCFG.PINCM[PA27INDEX] =  0x00000081;    // Output Key4
+  GPIOA->DOE31_0 |= (1<<27);  // Output Enable
 
 
 //  ST7735_DrawBitmap(0, 50, white_key, 32, 30);
