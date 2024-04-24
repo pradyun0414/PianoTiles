@@ -133,7 +133,8 @@ uint32_t lives = 3; // Decremented in FSM handler
 
 // FSM stuff
 
-bool language = false; // false for English, true for Spanish
+uint32_t language = 0; // false for English, true for Spanish
+uint32_t china = 0;
 uint32_t stateIndex = 0;
 
 struct State {
@@ -320,6 +321,16 @@ void generateRowArray(){
 void startGameRows(){
 
     ST7735_FillScreen(0xFFFF);            // set screen to white to reset screen
+
+    for(uint8_t j = 0; j < songLength; j++){
+        for(uint8_t i = 0; i < 4; i++){
+            if(rowArray[j].getKey(i).getArray() == Key::gray_key){
+                rowArray[j].getKey(i).switchToUnclicked();
+            }
+        }
+    }
+
+
     rowArray[0].setOnScreen();
     rowArray[0].setRowY(110);
     rowArray[0].drawRow();
@@ -355,12 +366,6 @@ void adjustVisible(){
     if(rowArray[bottomRow].getRowY() > 140){
         rowArray[bottomRow].setOffScreen();
         //rowArray[bottomRow].clearRow();
-
-        for(uint8_t i = 0; i < 4; i++){
-            if(rowArray[bottomRow].getKey(i).getArray() == Key::gray_key){
-                rowArray[bottomRow].getKey(i).switchToUnclicked();
-            }
-        }
         bottomRow++;
     }
 
@@ -623,16 +628,20 @@ void FSM_Handler() {
         if(clickedKeys == 4)
         {
             stateIndex = FSM[stateIndex].next[0];
-            language = !language;
+            if(language == 0)
+                language = 1;
+            else
+                language = 0;
+            //language = !language;
             switchingMenuState = true;
 
         }
-        if(clickedKeys == 2)
+        else if(clickedKeys == 2)
         {
             stateIndex = FSM[stateIndex].next[1];
             switchingMenuState = true;
         }
-        if(clickedKeys == 1)
+        else if(clickedKeys == 1)
         {
             stateIndex = FSM[stateIndex].next[2];
             switchingMode = true;
@@ -671,9 +680,10 @@ void FSM_Handler() {
 //        clickedKeys = 0;    // Reset to 0 because done
     }
 
-
-    else if(FSM[stateIndex].mode==2) // CHECK IF AT BOTTOM AGAIN
+    else if(FSM[stateIndex].mode==2) // MAKE SURE TO ADD CONDITIONAL TO CHECK IF AT BOTTOM !!!!!!!!
     {
+        switchingMode = false;
+        uint32_t curstate = stateIndex;
         if(clickedKeys == FSM[stateIndex].outputKeys){
             for(uint8_t i = 0; i < 4; i++){
                 if(rowArray[bottomRow].getKey(i).getArray() == Key::black_key){
@@ -685,8 +695,9 @@ void FSM_Handler() {
             Sound_Start(FSM[stateIndex].noteFrequency);
         }
 
+
         if(rowArray[bottomRow].getRowY() == 140){
-            if(clickedKeys != FSM[stateIndex].outputKeys)
+            if(clickedKeys != FSM[curstate].outputKeys)
             {
                 lives--;
             }
@@ -694,12 +705,12 @@ void FSM_Handler() {
             {
                 if(language==0)
                 {
-                    stateIndex = FSM[stateIndex].next[0];
+                    stateIndex = FSM[curstate].next[0];
                     switchingMode = true;
                 }
                 else
                 {
-                    stateIndex = FSM[stateIndex].next[1];
+                    stateIndex = FSM[curstate].next[1];
                     switchingMode = true;
                 }
             }
@@ -707,12 +718,12 @@ void FSM_Handler() {
             {
                 if(language==0)
                  {
-                     stateIndex = FSM[stateIndex].next[2];
+                     stateIndex = FSM[curstate].next[2];
                      switchingMode = true;
                  }
                  else
                  {
-                     stateIndex = FSM[stateIndex].next[3];
+                     stateIndex = FSM[curstate].next[3];
                      switchingMode = true;
                  }
             }
@@ -731,12 +742,23 @@ void FSM_Handler() {
 
     }
 
+
     else if(FSM[stateIndex].mode==3)
     {
         if(clickedKeys!=0)
         {
             stateIndex = FSM[stateIndex].next[0];
             switchingMode = true;
+                risingEdge1=0;
+                fallingEdge1=0;
+                risingEdge2=0;
+                fallingEdge2=0;
+                risingEdge3=0;
+                fallingEdge3=0;
+                risingEdge4=0;
+                fallingEdge4=0;
+
+                clickedKeys = 0;    // Reset to 0 because done
         }
 
         if(risingEdge1 && fallingEdge1){
@@ -841,10 +863,10 @@ int main(void){ // main1
 
       if(FSM[stateIndex].mode == 0){
           if(switchingMode){
+              switchingMode = false;
               ST7735_FillScreen(0xFEB7);            // set screen to white
               //ST7735_FillScreen(0xFFFF);
               //clear whole screen, draw necessary sprites
-              switchingMode = false;
               ST7735_DrawBitmap(11, 30, Sprite::PianoTilesTitle, 106, 20);
               ST7735_DrawBitmap(44, 145, Sprite::PlayButton, 40, 20);
 
@@ -889,10 +911,10 @@ int main(void){ // main1
               }
           }
       }
-      if(FSM[stateIndex].mode == 1){ //initialize if switching mode, otherwise redraw keys
+      else if(FSM[stateIndex].mode == 1){ //initialize if switching mode, otherwise redraw keys
           if(switchingMode){
-              startGameRows();
               switchingMode = false;
+              startGameRows();
               ST7735_DrawBitmap(0, 160, Sprite::BottomBlock, 128, 20);
               ST7735_DrawBitmap(0, 20, Sprite::TopBlock, 128, 20);
 
@@ -923,15 +945,16 @@ int main(void){ // main1
               adjustVisible();
           }
       }
-      if(FSM[stateIndex].mode == 2){ //always try to redraw key and adjust
+      else if(FSM[stateIndex].mode == 2){ //always try to redraw key and adjust
+          switchingMode = false;
           for(int i = bottomRow; i <= topRow; i++){
               for(int j = 0; j < 4; j++){
                   rowArray[i].getKey(j).redrawKey();
               }
 
           }
-          ST7735_DrawBitmap(0, 20, Sprite::TopBlock, 128, 20);
-          ST7735_DrawBitmap(0, 160, Sprite::BottomBlock, 128, 20);
+          //ST7735_DrawBitmap(0, 20, Sprite::TopBlock, 128, 20);
+          //ST7735_DrawBitmap(0, 160, Sprite::BottomBlock, 128, 20);
           for(int i = 3; i > 0; i--){
               if(lives < i){
                   ST7735_DrawBitmap(128 - i * 10, 10, Sprite::EmptyHeart, 8, 8);
@@ -942,11 +965,22 @@ int main(void){ // main1
           }
           adjustVisible();
       }
-      if(FSM[stateIndex].mode == 3){
+      else if(FSM[stateIndex].mode == 3){
           if(switchingMode){
-              ST7735_FillScreen(0xFFFF);            // set screen to white
-              //clear whole screen, draw necessary sprites
               switchingMode = false;
+              ST7735_FillScreen(0xFFFF);            // set screen to white
+              //ST7735_SetCursor(0,0);
+
+              if(stateIndex == 4 || stateIndex == 5){
+                  //char str[] = "You lose";
+                  ST7735_DrawBitmap(50, 50, Sprite::Heart, 8, 8);
+
+              }
+              else{
+                  //char str[] = "You win";
+                  ST7735_DrawBitmap(50, 50, Sprite::EmptyHeart, 8, 8);
+              }
+              //clear whole screen, draw necessary sprites
           }
       }
 
