@@ -38,6 +38,95 @@ void FSM_Handler();
 #define T33ms 2666666
 
 
+
+//////////////////////////////////////////////////////////////
+
+// SOUND STUFF IS HERE
+
+// Twinkle Twinkle Notes
+#define C4  9556   // 261.6 Hz
+#define G4  6378   // 392 Hz
+#define A4 5682   // 440 Hz
+#define F4  7159   // 349.2 Hz
+#define E4  7584   // 329.6 Hz
+#define D4  8513   // 293.7 Hz
+
+// Happy Birthday - uses same notes as above plus a few more (C5 and Bb4)
+
+#define Bflat4 5062 // 493.88 Hz
+#define C5 4778 // 523.25 Hz
+
+
+// Initialize 5-bit DAC, called once
+void DAC5_Init(void){
+// Assumes LaunchPad_Init has been called
+
+    IOMUX->SECCFG.PINCM[PB0INDEX] = 0x00000081;    // Outputs
+    IOMUX->SECCFG.PINCM[PB1INDEX] = 0x00000081;
+    IOMUX->SECCFG.PINCM[PB2INDEX] = 0x00000081;
+    IOMUX->SECCFG.PINCM[PB3INDEX] = 0x00000081;
+    IOMUX->SECCFG.PINCM[PB4INDEX] = 0x00000081;
+
+    GPIOB->DOE31_0 |= 1 | (1<<1) | (1<<2) | (1<<3) | (1<<4);
+
+}
+
+
+// output to DAC5
+// Input: data is 5-bit integer, 0 to 31
+void DAC5_Out(uint32_t data){
+    // write this
+
+    GPIOB->DOUTCLR31_0 = 31;
+    GPIOB->DOUTSET31_0 = data;
+}
+
+
+
+void Sound_Init(uint32_t period, uint32_t priority){
+
+    SysTick->CTRL = 0x00; // disable during initialization
+    SysTick->LOAD = period-1; // set reload register
+    SCB->SHP[1] = (SCB->SHP[1] & (~0xC0000000)) | priority<<30;
+    SysTick->VAL = 0; // clear count, cause reload
+    SysTick->CTRL = 0x07; // Enable SysTick IRQ and SysTick Timer
+
+}
+
+void Sound_Stop(void){
+  // either set LOAD to 0 or clear bit 1 in CTRL
+
+    SysTick->LOAD = 0;
+
+}
+
+
+void Sound_Start(uint32_t period){
+
+  // set reload value
+  // write any value to VAL, cause reload
+
+    SysTick->CTRL = 0x00; // disable during initialization
+    SysTick->LOAD = period-1; // set reload register
+    SysTick->VAL = 0; // clear count, cause reload
+    SysTick->CTRL = 0x07; // Enable SysTick IRQ and SysTick Timer
+}
+
+// Interrupt service routine
+// Executed every 12.5ns*(period)
+void SysTick_Handler(void){
+  // write this
+  // output one value to DAC
+
+  const uint8_t wave[32] = {16,19,22,24,27,28,30,31,31,31,30,28,27,24,22,19,16,13,10,8,5,4,2,1,1,1,2,4,5,8,10,13};
+  static uint32_t i=0;
+  DAC5_Out(wave[i]);
+  i = (i+1) & 0x1F; // Cycles
+
+}
+
+
+
 ////////////////////////////////////////////////////////////////
 
 uint32_t lives = 3; // Decremented in FSM handler
@@ -57,13 +146,13 @@ struct State {
 };
 
 
-State FSM[56] =         // CHANGE FSM SIZE!!!
+State FSM[59] =         // CHANGE FSM SIZE!!!
 {
 
-     {0, 0, 0, {1, 2, 8, 0}},     // English Menu Song 1           0
-     {0, 0, 0, {0, 3, 8, 1}},     // Spanish Menu Song 1           1         MAKE SURE THE 8 IS THE FIRST INDEX OF SONG 1
-     {0, 0, 0, {3, 0, 56, 2}},    // English Menu Song 2           2         REPLACE THE 40 WITH STARTING INDEX OF SONG 2
-     {0, 0, 0, {2, 1, 56, 3}},    // Spanish Menu Song 2           3
+     {0, 0, 0, {1, 2, 56, 0}},    // English Menu Song 1           0
+     {0, 0, 0, {0, 3, 56, 1}},    // Spanish Menu Song 1           1         MAKE SURE THE 8 IS THE FIRST INDEX OF SONG 1 (56 NOW)
+     {0, 0, 0, {3, 0, 80, 2}},    // English Menu Song 2           2         REPLACE THE 40 WITH STARTING INDEX OF SONG 2
+     {0, 0, 0, {2, 1, 80, 3}},    // Spanish Menu Song 2           3
      {3, 0, 0, {0, 0, 0, 0}},     // English Lose                  4
      {3, 0, 0, {1, 1, 1, 1}},     // Spanish Lose                  5
      {3, 0, 0, {0, 0, 0, 0}},     // English Win                   6
@@ -71,60 +160,63 @@ State FSM[56] =         // CHANGE FSM SIZE!!!
 
      // For empty space, make sure 0 for frequency works. If not, add a conditional where it just doesn't call the SoundStart method if frequency is 0
 
-     {1, 8, 999, {9, 4, 5, 0}},               // First state of Song 1                    8
-     {1, 8, 999, {10, 4, 5, 0}},              //                                          9
-     {1, 2, 999, {11, 4, 5, 0}},              //                                          10
-     {1, 2, 999, {12, 4, 5, 0}},              //                                          11
-     {1, 1, 999, {13, 4, 5, 0}},              //                                          12
-     {1, 1, 999, {14, 4, 5, 0}},              //                                          13
-     {1, 10, 999, {15, 4, 5, 0}},             //                                          14
-     {1, 0, 0, {16, 4, 5, 0}},                //                                          15
+     {1, 8, C4, {9, 4, 5, 0}},               // First state of Song 1                    8
+     {1, 8, C4, {10, 4, 5, 0}},              //                                          9
+     {1, 2, G4, {11, 4, 5, 0}},              //                                          10
+     {1, 2, G4, {12, 4, 5, 0}},              //                                          11
+     {1, 1, A4, {13, 4, 5, 0}},              //                                          12
+     {1, 1, A4, {14, 4, 5, 0}},              //                                          13
+     {1, 10, G4, {15, 4, 5, 0}},             //                                          14
+     {1, 0, 1, {16, 4, 5, 0}},               //                                          15
 
-     {1, 1, 999, {17, 4, 5, 0}},              //                                          16
-     {1, 1, 999, {18, 4, 5, 0}},              //                                          17
-     {1, 2, 999, {19, 4, 5, 0}},              //                                          18
-     {1, 2, 999, {20, 4, 5, 0}},              //                                          19
-     {1, 4, 999, {21, 4, 5, 0}},              //                                          20
-     {1, 4, 999, {22, 4, 5, 0}},              //                                          21
-     {1, 10, 999, {23, 4, 5, 0}},             //                                          22
-     {1, 0, 0, {24, 4, 5, 0}},                //                                          23
+     {1, 1, F4, {17, 4, 5, 0}},              //                                          16
+     {1, 1, F4, {18, 4, 5, 0}},              //                                          17
+     {1, 2, E4, {19, 4, 5, 0}},              //                                          18
+     {1, 2, E4, {20, 4, 5, 0}},              //                                          19
+     {1, 4, D4, {21, 4, 5, 0}},              //                                          20
+     {1, 4, D4, {22, 4, 5, 0}},              //                                          21
+     {1, 10, C4, {23, 4, 5, 0}},             //                                          22
+     {1, 0, 1, {24, 4, 5, 0}},               //                                         23
 
-     {1, 2, 999, {25, 4, 5, 0}},              //                                          24
-     {1, 2, 999, {26, 4, 5, 0}},              //                                          25
-     {1, 4, 999, {27, 4, 5, 0}},              //                                          26
-     {1, 4, 999, {28, 4, 5, 0}},              //                                          27
-     {1, 8, 999, {29, 4, 5, 0}},              //                                          28
-     {1, 8, 999, {30, 4, 5, 0}},              //                                          29
-     {1, 5, 999, {31, 4, 5, 0}},              //                                          30
-     {1, 0, 0, {32, 4, 5, 0}},                //                                          31
+     {1, 2, G4, {25, 4, 5, 0}},              //                                          24
+     {1, 2, G4, {26, 4, 5, 0}},              //                                          25
+     {1, 4, F4, {27, 4, 5, 0}},              //                                          26
+     {1, 4, F4, {28, 4, 5, 0}},              //                                          27
+     {1, 8, E4, {29, 4, 5, 0}},              //                                          28
+     {1, 8, E4, {30, 4, 5, 0}},              //                                          29
+     {1, 5, D4, {31, 4, 5, 0}},              //                                          30
+     {1, 0, 1, {32, 4, 5, 0}},               //                                          31
 
-     {1, 2, 999, {33, 4, 5, 0}},              //                                          32
-     {1, 2, 999, {34, 4, 5, 0}},              //                                          33
-     {1, 4, 999, {35, 4, 5, 0}},              //                                          34
-     {1, 4, 999, {36, 4, 5, 0}},              //                                          35
-     {1, 8, 999, {37, 4, 5, 0}},              //                                          36
-     {1, 8, 999, {38, 4, 5, 0}},              //                                          37
-     {1, 5, 999, {39, 4, 5, 0}},              //                                          38
-     {1, 0, 0, {40, 4, 5, 0}},                //                                          39
+     {1, 2, G4, {33, 4, 5, 0}},              //                                          32
+     {1, 2, G4, {34, 4, 5, 0}},              //                                          33
+     {1, 4, F4, {35, 4, 5, 0}},              //                                          34
+     {1, 4, F4, {36, 4, 5, 0}},              //                                          35
+     {1, 8, E4, {37, 4, 5, 0}},              //                                          36
+     {1, 8, E4, {38, 4, 5, 0}},              //                                          37
+     {1, 5, D4, {39, 4, 5, 0}},              //                                          38
+     {1, 0, 1, {40, 4, 5, 0}},               //                                          39
 
-     {1, 8, 999, {41, 4, 5, 0}},              //                                          40
-     {1, 8, 999, {42, 4, 5, 0}},              //                                          41
-     {1, 2, 999, {43, 4, 5, 0}},              //                                          42
-     {1, 2, 999, {44, 4, 5, 0}},              //                                          43
-     {1, 1, 999, {45, 4, 5, 0}},              //                                          44
-     {1, 1, 999, {46, 4, 5, 0}},              //                                          45
-     {1, 10, 999, {47, 4, 5, 0}},             //                                          46
-     {1, 0, 0, {48, 4, 5, 0}},                //                                          47
+     {1, 8, C4, {41, 4, 5, 0}},              //                                          40
+     {1, 8, C4, {42, 4, 5, 0}},              //                                          41
+     {1, 2, G4, {43, 4, 5, 0}},              //                                          42
+     {1, 2, G4, {44, 4, 5, 0}},              //                                          43
+     {1, 1, A4, {45, 4, 5, 0}},              //                                          44
+     {1, 1, A4, {46, 4, 5, 0}},              //                                          45
+     {1, 10, G4, {47, 4, 5, 0}},             //                                          46
+     {1, 0, 1, {48, 4, 5, 0}},               //                                          47
 
-     {1, 1, 999, {49, 4, 5, 0}},              //                                          48
-     {1, 1, 999, {50, 4, 5, 0}},              //                                          49
-     {1, 2, 999, {51, 4, 5, 0}},              //                                          50
-     {1, 2, 999, {52, 4, 5, 0}},              //                                          51
-     {1, 4, 999, {53, 4, 5, 0}},              //                                          52
-     {1, 4, 999, {54, 4, 5, 0}},              //                                          53
-     {1, 15, 999, {55, 4, 5, 0}},             //                                          54
-     {2, 0, 0, {4, 5, 6, 7}},                 // LastNote1                                55
+     {1, 1, F4, {49, 4, 5, 0}},              //                                          48
+     {1, 1, F4, {50, 4, 5, 0}},              //                                          49
+     {1, 2, E4, {51, 4, 5, 0}},              //                                          50
+     {1, 2, E4, {52, 4, 5, 0}},              //                                          51
+     {1, 4, D4, {53, 4, 5, 0}},              //                                          52
+     {1, 4, D4, {54, 4, 5, 0}},              //                                          53
+     {1, 15, C4, {55, 4, 5, 0}},             //                                          54
+     {2, 0, 1, {4, 5, 6, 7}},                // LastNote1                                55
 
+     {1, 0, 1, {57, 4, 5, 0}},               //  EMPTY START BUFFER! SONG STARTS HERE    56
+     {1, 0, 1, {58, 4, 5, 0}},               //                                          57
+     {1, 0, 1, {8, 4, 5, 0}},                //                                          58
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -152,11 +244,11 @@ State FSM[56] =         // CHANGE FSM SIZE!!!
 
 ////////////////////////////////////////////////////////////////
 
-uint8_t song[] = {8, 8, 2, 2, 1, 1, 10, 0, 1, 1, 2, 2, 4, 4, 10, 0, 2, 2, 4, 4, 8, 8, 5, 0, 2, 2, 4, 4, 8, 8, 5, 0, 8, 8, 2, 2, 1, 1, 10, 0, 1, 1, 2, 2, 4, 4, 15, 0};
-uint16_t songLength = 48;
+uint8_t song[] = {0, 0, 0, 8, 8, 2, 2, 1, 1, 10, 0, 1, 1, 2, 2, 4, 4, 10, 0, 2, 2, 4, 4, 8, 8, 5, 0, 2, 2, 4, 4, 8, 8, 5, 0, 8, 8, 2, 2, 1, 1, 10, 0, 1, 1, 2, 2, 4, 4, 15, 0};
+uint16_t songLength = 51;
 uint16_t topRow = 0; //topRow is a later note, so higher index
 uint16_t bottomRow = 0;
-Row rowArray[48];
+Row rowArray[51];
 
 //bool needsRedraw;
 uint16_t g6counter = 0;
@@ -484,6 +576,7 @@ void FSM_Handler() {
                 }
             }
 
+            Sound_Start(FSM[stateIndex].noteFrequency);
             //OUTPUT SOUND HERE (OR CALL SOMETHING THAT WILL)
         }
 
@@ -589,6 +682,7 @@ void FSM_Handler() {
             }
 
             //OUTPUT SOUND HERE (OR CALL SOMETHING THAT WILL)
+            Sound_Start(FSM[stateIndex].noteFrequency);
         }
 
         if(rowArray[bottomRow].getRowY() == 140){
@@ -693,68 +787,8 @@ void FSM_Handler() {
 
 }
 
-
 ////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
-int mainEdge(void) {        // Edge triggered main
-
-    // Using PB14 as switch to test
-
-    __disable_irq();
-    LaunchPad_Init();   // Doesn't do anything with PB14 actually, I do that myself
-//    ST7735_InitPrintf();
-//    ST7735_FillScreen(0xFFFF);
-
-    IOMUX->SECCFG.PINCM[PB12INDEX] = 0x00040081;     // PB12 Input
-
-    // EdgeTriggered Initializations
-
-//    GPIOB->POLARITY15_0 = (3<<24);  // Will set interrupt on both rising and falling edge
-//    GPIOB->CPU_INT.ICLR = (1<<12);
-//    GPIOB->CPU_INT.IMASK = (1<<12); // Arm PB12
-//
-//    NVIC->IP[0] = (NVIC->IP[0]&(~0x0000FF00)) | 2<<14; // priority=2
-//    NVIC->ISER[0] = 1 << 1; // Groupl interrupt
-
-
-    // To test inputs, using an LED
-
-    IOMUX->SECCFG.PINCM[PB16INDEX] =  0x00000081;    // Output
-    GPIOB->DOE31_0 |= (1<<16);  // Output Enable
-
-    __enable_irq();
-
-    while(1)
-    {
-
-// Testing
-        uint32_t userInput = GPIOB->DIN31_0;
-        userInput = userInput & (1<<12);
-        if(userInput == 0)
-        {
-            GPIOB->DOUTCLR31_0 |= (1<<16);
-        }
-        else
-        {
-            GPIOB->DOUTSET31_0 |= (1<<16);
-        }
-    }
-
-}
-
-void GROUP1_IRQHandler(void) {
-
-    GPIOB->DOUTTGL31_0 |= (1<<16);
-    GPIOB->CPU_INT.ICLR = (1<<12);
-
-    //moveRows(2);
-
-    GPIOB->DOUTTGL31_0 = GREEN; // toggle PB27 (minimally intrusive debugging)
-
-}
 
 // use main1 to observe special characters
 int main(void){ // main1
@@ -762,16 +796,18 @@ int main(void){ // main1
   __disable_irq();
   PLL_Init(); // set bus speed
   LaunchPad_Init();
+  DAC5_Init();
+  Sound_Init(1,0);
   ST7735_InitPrintf();
   ST7735_FillScreen(0xFFFF);            // set screen to black
 
-  SysTick->LOAD = 0xFFFFFF;    // max
-  SysTick->VAL = 0;            // any write to current clears it
-  SysTick->CTRL = 0x00000005;  // enable SysTick with core clock
-
-  startTime = SysTick->VAL;
-  stopTime = SysTick->VAL;
-  Offset = (startTime-stopTime)&0x0FFFFFF; // in bus cycles
+//  SysTick->LOAD = 0xFFFFFF;    // max
+//  SysTick->VAL = 0;            // any write to current clears it
+//  SysTick->CTRL = 0x00000005;  // enable SysTick with core clock
+//
+//  startTime = SysTick->VAL;
+//  stopTime = SysTick->VAL;
+//  Offset = (startTime-stopTime)&0x0FFFFFF; // in bus cycles
 
   TimerG12_IntArm(80000000/30,1);
   //TimerG0_IntArm(40000000/30000, 1000 ,2);
@@ -1012,6 +1048,10 @@ void moveKey(){
 
 }
 
+
+
+
+
 // use main2 to observe graphics
 int main2(void){ // main2
   __disable_irq();
@@ -1068,7 +1108,7 @@ int main4(void){ uint32_t last=0,now;
   LaunchPad_Init();
   Switch_Init(); // initialize switches
   LED_Init(); // initialize LED
-  Sound_Init();  // initialize sound
+  Sound_Init(1,0);  // initialize sound
   TExaS_Init(ADC0,6,0); // ADC1 channel 6 is PB20, TExaS scope
   __enable_irq();
   while(1){
@@ -1100,7 +1140,7 @@ int main5(void){ // final main
   Sensor.Init(); // PB18 = ADC1 channel 5, slidepot
   Switch_Init(); // initialize switches
   LED_Init();    // initialize LED
-  Sound_Init();  // initialize sound
+  Sound_Init(1,0);  // initialize sound
   TExaS_Init(0,0,&TExaS_LaunchPadLogicPB27PB26); // PB27 and PB26
     // initialize interrupts on TimerG12 at 30 Hz
   //TimerG12_IntArm(80000000/30,2);
@@ -1114,3 +1154,5 @@ int main5(void){ // final main
     // check for end game or level switch
   }
 }
+
+

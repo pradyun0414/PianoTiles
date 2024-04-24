@@ -11,21 +11,21 @@
 #include "../inc/Timer.h"
 
 
-void SysTick_IntArm(uint32_t period, uint32_t priority){
-  // write this
-}
-// initialize a 11kHz SysTick, however no sound should be started
-// initialize any global variables
-// Initialize the 5 bit DAC
-void Sound_Init(void){
-// write this
-  
-}
-extern "C" void SysTick_Handler(void);
-void SysTick_Handler(void){ // called at 11 kHz
-  // output one value to DAC if a sound is active
-   
-}
+//void SysTick_IntArm(uint32_t period, uint32_t priority){
+//  // write this
+//}
+//// initialize a 11kHz SysTick, however no sound should be started
+//// initialize any global variables
+//// Initialize the 5 bit DAC
+//void Sound_Init(void){
+//// write this
+//
+//}
+//extern "C" void SysTick_Handler(void);
+//void SysTick_Handler(void){ // called at 11 kHz
+//  // output one value to DAC if a sound is active
+//
+//}
 
 //******* Sound_Start ************
 // This function does not output to the DAC. 
@@ -37,10 +37,12 @@ void SysTick_Handler(void){ // called at 11 kHz
 //        count is the length of the array
 // Output: none
 // special cases: as you wish to implement
-void Sound_Start(const uint8_t *pt, uint32_t count){
-// write this
-  
-}
+
+//void Sound_Start(const uint8_t *pt, uint32_t count){
+//// write this
+//
+//}
+
 void Sound_Shoot(void){
 // write this
   
