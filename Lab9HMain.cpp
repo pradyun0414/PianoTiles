@@ -28,6 +28,7 @@ extern "C" void __disable_irq(void);
 extern "C" void __enable_irq(void);
 extern "C" void TIMG12_IRQHandler(void);
 extern "C" void TIMG6_IRQHandler(void);
+extern "C" void SysTick_Handler(void);
 
 void FSM_Handler();
 
@@ -63,8 +64,7 @@ void FSM_Handler();
 // SlidePot - ADC Stuff
 
 SlidePot Sensor(1832,176); // Calibrated
-uint32_t Data;        // 12-bit ADC
-uint32_t Position;    // 32-bit fixed-point 0.001 cm
+uint32_t Reading;        // 12-bit ADC
 uint32_t ADCflag = 0;
 
 
@@ -166,7 +166,7 @@ const State FSM[91] =         // CHANGE FSM SIZE!!!
 
      {1, 0, 1, {60, 4, 5, 0}},               //  First state of Song 2 (Empty)           59
      {1, 0, 1, {61, 4, 5, 0}},               //  (Empty)                                 60
-     {1, 0, 1, {62 4, 5, 0}},                //  (Empty)                                 61
+     {1, 0, 1, {62, 4, 5, 0}},                //  (Empty)                                 61
 
      {1, 8, C4, {63, 4, 5, 0}},              //                                          62
      {1, 8, C4, {64, 4, 5, 0}},              //                                          63
@@ -253,8 +253,6 @@ uint32_t Random32(void){
 uint32_t Random(uint32_t n){
   return (Random32()>>16)%n;
 }
-
-SlidePot Sensor(1500,0); // copy calibration from Lab 7
 
 
 uint8_t TExaS_LaunchPadLogicPB27PB26(void){
@@ -397,8 +395,14 @@ void TIMG12_IRQHandler(void){uint32_t pos,msg;
  }
 }
 
+void SysTick_Handler(void){ // called at 11 kHz
 
+    const uint8_t wave[32] = {16,19,22,24,27,28,30,31,31,31,30,28,27,24,22,19,16,13,10,8,5,4,2,1,1,1,2,4,5,8,10,13};
+    static uint32_t i=0;
+    DAC5_Out((wave[i]*Data)/4095);
+    i = (i+1) & 0x1F; // Cycles
 
+}
 
 //uint8_t song[] = {15, 3, 5, 0, 7, 8, 11, 14, 15, 14, 11, 5, 10, 12, 1, 10, 7, 0, 13, 8, 4, 6, 9, 4, 10, 14, 5, 5, 1, 0, 8, 7, 13, 1, 10, 4, 12, 14, 8, 1, 0, 10, 6, 10, 11, 12, 7, 6, 15, 9};
 //uint16_t songLength = 50;
@@ -458,8 +462,8 @@ void TIMG6_IRQHandler(void)
             //GPIOB->DOUTTGL31_0 |= (1<<16);
             // Key 1
 
-                    Data = Sensor.In();
-                    Sensor.Save(Data);   // Updates the data and also sets flag within the sensor class
+                    Reading = Sensor.In();
+                    Sensor.Save(Reading);   // Updates the data and also sets flag within the sensor class
                     ADCflag = 1;
 
                     uint32_t userInput1 = GPIOB->DIN31_0 & (1<<12);
@@ -561,7 +565,10 @@ void FSM_Handler() {
                 }
             }
 
-            Sound_Start(FSM[stateIndex].noteFrequency);
+            if(FSM[stateIndex].noteFrequency != 1)
+            {
+                Sound_Start(FSM[stateIndex].noteFrequency);
+            }
             //OUTPUT SOUND HERE (OR CALL SOMETHING THAT WILL)
         }
 
@@ -679,7 +686,11 @@ void FSM_Handler() {
             }
 
             //OUTPUT SOUND HERE (OR CALL SOMETHING THAT WILL)
-            Sound_Start(FSM[stateIndex].noteFrequency);
+            if(FSM[stateIndex].noteFrequency != 1)
+            {
+                Sound_Start(FSM[stateIndex].noteFrequency);
+            }
+
         }
 
 
