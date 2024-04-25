@@ -72,6 +72,8 @@ uint32_t lives = 3; // Decremented in FSM handler
 uint32_t language = 0; // false for English, true for Spanish
 uint32_t china = 0;
 uint32_t stateIndex = 0;
+uint32_t clickedKeys = 0;
+
 
 struct State {
 
@@ -256,6 +258,10 @@ void generateRowArray(){
 
 void startGameRows(){
 
+    bottomRow = 0;
+    topRow = 3;
+    lives = 3;
+
     ST7735_FillScreen(0xFFFF);            // set screen to white to reset screen
 
     for(uint8_t j = 0; j < songLength; j++){
@@ -285,9 +291,7 @@ void startGameRows(){
     rowArray[3].drawRow();
 
 
-    bottomRow = 0;
-    topRow = 3;
-    lives = 3;
+
 
     //needsRedraw = false;
 }
@@ -405,7 +409,6 @@ int mainSwitch(void) {    // main switch testing
 
 }
 
-uint32_t clickedKeys = 0;
 
 void TIMG6_IRQHandler(void)
 {
@@ -571,8 +574,10 @@ void FSM_Handler() {
             stateIndex = FSM[stateIndex].next[0];
             if(language == 0)
                 language = 1;
-            else
+            else if(language==1)
+            {
                 language = 0;
+            }
             //language = !language;
             switchingMenuState = true;
 
@@ -831,27 +836,28 @@ int main(void){ // main1
       if(FSM[stateIndex].mode == 0){
           if(switchingMode){
               switchingMode = false;
-              ST7735_FillScreen(0xFEB7);            // set screen to white
+              uint32_t curstate = stateIndex;
+              ST7735_FillScreen(0xbebf);            // set screen to white
               //ST7735_FillScreen(0xFFFF);
               //clear whole screen, draw necessary sprites
               ST7735_DrawBitmap(11, 30, Sprite::PianoTilesTitle, 106, 20);
               ST7735_DrawBitmap(44, 145, Sprite::PlayButton, 40, 20);
 
 
-              if(stateIndex == 0){
+              if(curstate == 0){
                   ST7735_DrawBitmap(44, 65, Sprite::EnglishButton, 40, 20);
                   ST7735_DrawBitmap(44, 100, Sprite::Song1English, 40, 20);
 
               }
-              if(stateIndex == 1){
+              if(curstate == 1){
                   ST7735_DrawBitmap(44, 65, Sprite::SpanishButton, 40, 20);
                   ST7735_DrawBitmap(44, 100, Sprite::Song1Spanish, 40, 20);
               }
-              if(stateIndex == 2){
+              if(curstate == 2){
                   ST7735_DrawBitmap(44, 65, Sprite::EnglishButton, 40, 20);
                   ST7735_DrawBitmap(44, 100, Sprite::Song2English, 40, 20);
               }
-              if(stateIndex == 3){
+              if(curstate == 3){
                   ST7735_DrawBitmap(44, 65, Sprite::SpanishButton, 40, 20);
                   ST7735_DrawBitmap(44, 100, Sprite::Song2Spanish, 40, 20);
               }
@@ -859,20 +865,21 @@ int main(void){ // main1
           else if(switchingMenuState){
               //replace necessary sprites
               switchingMenuState = false;
-              if(stateIndex == 0){
+              uint32_t curstate = stateIndex;
+              if(curstate == 0){
                   ST7735_DrawBitmap(44, 65, Sprite::EnglishButton, 40, 20);
                   ST7735_DrawBitmap(44, 100, Sprite::Song1English, 40, 20);
 
               }
-              if(stateIndex == 1){
+              if(curstate == 1){
                   ST7735_DrawBitmap(44, 65, Sprite::SpanishButton, 40, 20);
                   ST7735_DrawBitmap(44, 100, Sprite::Song1Spanish, 40, 20);
               }
-              if(stateIndex == 2){
+              if(curstate == 2){
                   ST7735_DrawBitmap(44, 65, Sprite::EnglishButton, 40, 20);
                   ST7735_DrawBitmap(44, 100, Sprite::Song2English, 40, 20);
               }
-              if(stateIndex == 3){
+              if(curstate == 3){
                   ST7735_DrawBitmap(44, 65, Sprite::SpanishButton, 40, 20);
                   ST7735_DrawBitmap(44, 100, Sprite::Song2Spanish, 40, 20);
               }
@@ -935,10 +942,11 @@ int main(void){ // main1
       else if(FSM[stateIndex].mode == 3){
           if(switchingMode){
               switchingMode = false;
+              uint32_t curstate = stateIndex;
               ST7735_FillScreen(0xFFFF);            // set screen to white
               //ST7735_SetCursor(0,0);
 
-              if(stateIndex == 4 || stateIndex == 5){
+              if(curstate == 4 || curstate == 5){
                   //char str[] = "You lose";
                   ST7735_DrawBitmap(50, 50, Sprite::Heart, 8, 8);
 
