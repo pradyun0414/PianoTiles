@@ -13,7 +13,7 @@
 #include "../inc/TExaS.h"
 #include "../inc/Timer.h"
 #include "../inc/SlidePot.h"
-#include "../inc/DAC5.h"
+//#include "../inc/DAC5.h"
 #include "SmallFont.h"
 #include "LED.h"
 #include "Switch.h"
@@ -36,7 +36,13 @@ void FSM_Handler();
 #define B 0x0000
 #define W 0x0FFF
 #define T33ms 2666666
+#define Tchinesems 26666666
 
+#define PB0INDEX  11 // UART0_TX  SPI1_CS2  TIMA1_C0  TIMA0_C2
+#define PB1INDEX  12 // UART0_RX  SPI1_CS3  TIMA1_C1  TIMA0_C2N
+#define PB2INDEX  14 // UART3_TX  UART2_CTS I2C1_SCL  TIMA0_C3  UART1_CTS TIMG6_C0  TIMA1_C0
+#define PB3INDEX  15 // UART3_RX  UART2_RTS I2C1_SDA  TIMA0_C3N UART1_RTS TIMG6_C1  TIMA1_C1
+#define PB4INDEX  16 // UART1_TX  UART3_CTS TIMA1_C0  TIMA0_C2  TIMA1_C0N
 
 
 //////////////////////////////////////////////////////////////
@@ -67,7 +73,9 @@ void DAC5_Init(void){
     IOMUX->SECCFG.PINCM[PB3INDEX] = 0x00000081;
     IOMUX->SECCFG.PINCM[PB4INDEX] = 0x00000081;
 
-    GPIOB->DOE31_0 |= 1 | (1<<1) | (1<<2) | (1<<3) | (1<<4);
+    //GPIOB->DOE31_0 |= 1 | (1<<1) | (1<<2) | (1<<3) | (1<<4);
+    GPIOB->DOE31_0 |= 0x01F;
+
 
 }
 
@@ -77,8 +85,10 @@ void DAC5_Init(void){
 void DAC5_Out(uint32_t data){
     // write this
 
-    GPIOB->DOUTCLR31_0 = 31;
-    GPIOB->DOUTSET31_0 = data;
+//    GPIOB->DOUTCLR31_0 = 31;
+//    GPIOB->DOUTSET31_0 = data;
+    GPIOB->DOUT31_0 = (GPIOB->DOUT31_0 & (~0x1F)) | data;
+
 }
 
 
@@ -118,10 +128,11 @@ void SysTick_Handler(void){
   // write this
   // output one value to DAC
 
-  const uint8_t wave[32] = {16,19,22,24,27,28,30,31,31,31,30,28,27,24,22,19,16,13,10,8,5,4,2,1,1,1,2,4,5,8,10,13};
-  static uint32_t i=0;
-  DAC5_Out(wave[i]);
-  i = (i+1) & 0x1F; // Cycles
+  const uint8_t waveArr[32] = {16,19,22,24,27,28,30,31,31,31,30,28,27,24,22,19,16,13,10,8,5,4,2,1,1,1,2,4,5,8,10,13};
+  static uint32_t soundTime=0;
+  DAC5_Out(waveArr[soundTime]);
+  soundTime = (soundTime+1) & 0x1F; // Cycles
+
 
 }
 
@@ -147,7 +158,7 @@ struct State {
 };
 
 
-State FSM[59] =         // CHANGE FSM SIZE!!!
+const State FSM[59] =         // CHANGE FSM SIZE!!!
 {
 
      {0, 0, 0, {1, 2, 56, 0}},    // English Menu Song 1           0
@@ -407,12 +418,12 @@ void TIMG12_IRQHandler(void){uint32_t pos,msg;
     // NO LCD OUTPUT IN INTERRUPT SERVICE ROUTINES
     //GPIOB->DOUTTGL31_0 |= (1<<16);
 
-    startTime = SysTick->VAL;
+    //startTime = SysTick->VAL;
     if(FSM[stateIndex].mode==1 || FSM[stateIndex].mode==2){
         moveRows(2);
     }
-    stopTime = SysTick->VAL;
-    Converttime = ((startTime-stopTime)&0x0FFFFFF)-Offset; // in bus cycles
+    //stopTime = SysTick->VAL;
+    //Converttime = ((startTime-stopTime)&0x0FFFFFF)-Offset; // in bus cycles
     FSM_Handler();
 
 
@@ -581,7 +592,7 @@ void FSM_Handler() {
                 }
             }
 
-            Sound_Start(FSM[stateIndex].noteFrequency);
+            //Sound_Start(FSM[stateIndex].noteFrequency);
             //OUTPUT SOUND HERE (OR CALL SOMETHING THAT WILL)
         }
 
@@ -591,6 +602,11 @@ void FSM_Handler() {
             {
                 lives--;
             }
+            else{
+//                Sound_Start(FSM[stateIndex].noteFrequency);
+//                Sound_Stop();
+            }
+
             if(lives==0)
             {
                 if(language==0)
@@ -692,7 +708,7 @@ void FSM_Handler() {
             }
 
             //OUTPUT SOUND HERE (OR CALL SOMETHING THAT WILL)
-            Sound_Start(FSM[stateIndex].noteFrequency);
+            //Sound_Start(FSM[stateIndex].noteFrequency);
         }
 
 
@@ -701,6 +717,12 @@ void FSM_Handler() {
             {
                 lives--;
             }
+            else{
+//                Sound_Start(FSM[stateIndex].noteFrequency);
+//                Sound_Stop();
+
+            }
+
             if(lives==0)
             {
                 if(language==0)
@@ -811,6 +833,26 @@ void FSM_Handler() {
 
 ////////////////////////////////////////////////////////////////////////////////////
 
+int main7(void){    //mainchina
+    //char l;
+  __disable_irq();
+  PLL_Init(); // set bus speed
+  LaunchPad_Init();
+  DAC5_Init();
+  Sound_Init(1,1);
+  ST7735_InitPrintf();
+  ST7735_FillScreen(0xFFFF);
+  __enable_irq();
+
+  while(1){
+      Sound_Start(9956);
+      Clock_Delay1ms(1000);
+//      Clock_Delay(Tchinesems);
+//      Sound_Stop();
+//      Clock_Delay(Tchinesems);
+
+  }
+}
 
 // use main1 to observe special characters
 int main(void){ // main1
@@ -818,10 +860,10 @@ int main(void){ // main1
   __disable_irq();
   PLL_Init(); // set bus speed
   LaunchPad_Init();
-  DAC5_Init();
-  Sound_Init(1,0);
-  ST7735_InitPrintf();
-  ST7735_FillScreen(0xFFFF);            // set screen to black
+  //DAC5_Init();
+  //Sound_Init(1,1);
+//  ST7735_InitPrintf();
+//  ST7735_FillScreen(0xFFFF);            // set screen to black
 
 //  SysTick->LOAD = 0xFFFFFF;    // max
 //  SysTick->VAL = 0;            // any write to current clears it
@@ -1142,7 +1184,7 @@ int main4(void){ uint32_t last=0,now;
   LaunchPad_Init();
   Switch_Init(); // initialize switches
   LED_Init(); // initialize LED
-  Sound_Init(1,0);  // initialize sound
+  Sound_Init(1,1);  // initialize sound
   TExaS_Init(ADC0,6,0); // ADC1 channel 6 is PB20, TExaS scope
   __enable_irq();
   while(1){
