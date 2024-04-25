@@ -24,8 +24,6 @@
 #include "Sprite.h"
 
 
-
-
 extern "C" void __disable_irq(void);
 extern "C" void __enable_irq(void);
 extern "C" void TIMG12_IRQHandler(void);
@@ -62,6 +60,13 @@ void FSM_Handler();
 #define Bflat4 5062 // 493.88 Hz
 #define C5 4778 // 523.25 Hz
 
+// SlidePot - ADC Stuff
+
+SlidePot Sensor(1832,176); // Calibrated
+uint32_t Data;        // 12-bit ADC
+uint32_t Position;    // 32-bit fixed-point 0.001 cm
+uint32_t ADCflag = 0;
+
 
 ////////////////////////////////////////////////////////////////
 
@@ -83,13 +88,13 @@ struct State {
 };
 
 
-const State FSM[59] =         // CHANGE FSM SIZE!!!
+const State FSM[91] =         // CHANGE FSM SIZE!!!
 {
 
      {0, 0, 0, {1, 2, 56, 0}},    // English Menu Song 1           0
      {0, 0, 0, {0, 3, 56, 1}},    // Spanish Menu Song 1           1         MAKE SURE THE 8 IS THE FIRST INDEX OF SONG 1 (56 NOW)
-     {0, 0, 0, {3, 0, 80, 2}},    // English Menu Song 2           2         REPLACE THE 40 WITH STARTING INDEX OF SONG 2
-     {0, 0, 0, {2, 1, 80, 3}},    // Spanish Menu Song 2           3
+     {0, 0, 0, {3, 0, 59, 2}},    // English Menu Song 2           2         REPLACE THE 40 WITH STARTING INDEX OF SONG 2
+     {0, 0, 0, {2, 1, 59, 3}},    // Spanish Menu Song 2           3
      {3, 0, 0, {0, 0, 0, 0}},     // English Lose                  4
      {3, 0, 0, {1, 1, 1, 1}},     // Spanish Lose                  5
      {3, 0, 0, {0, 0, 0, 0}},     // English Win                   6
@@ -157,17 +162,42 @@ const State FSM[59] =         // CHANGE FSM SIZE!!!
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//     {},               // First state of Song 2
-//     {},
-//     {},
-//     {},
-//     {},
-//     {},
-//     {},
-//     {},
-//     {},
-//     {},
-//     {},               // Last Note 2
+     {1, 0, 1, {60, 4, 5, 0}},               //  First state of Song 2 (Empty)           59
+     {1, 0, 1, {61, 4, 5, 0}},               //  (Empty)                                 60
+     {1, 0, 1, {62 4, 5, 0}},                //  (Empty)                                 61
+
+     {1, 8, C4, {63, 4, 5, 0}},              //                                          62
+     {1, 8, C4, {64, 4, 5, 0}},              //                                          63
+     {1, 4, D4, {65, 4, 5, 0}},              //                                          64
+     {1, 8, C4, {66, 4, 5, 0}},              //                                          65
+     {1, 2, F4, {67, 4, 5, 0}},              //                                          66
+     {1, 10, E4, {68, 4, 5, 0}},              //                                          67
+     {1, 0, 1, {69, 4, 5, 0}},               //                                          68
+
+     {1, 8, C4, {70, 4, 5, 0}},              //                                          69
+     {1, 8, C4, {71, 4, 5, 0}},              //                                          70
+     {1, 4, D4, {72, 4, 5, 0}},              //                                          71
+     {1, 8, C4, {73, 4, 5, 0}},              //                                          72
+     {1, 1, G4, {74, 4, 5, 0}},              //                                          73
+     {1, 5, F4, {75, 4, 5, 0}},              //                                          74
+     {1, 0, 1, {76, 4, 5, 0}},               //                                          75
+
+     {1, 8, C4, {77, 4, 5, 0}},              //                                          76
+     {1, 8, C4, {78, 4, 5, 0}},              //                                          77
+     {1, 1, C5, {79, 4, 5, 0}},              //                                          78
+     {1, 2, A4, {80, 4, 5, 0}},              //                                          79
+     {1, 4, F4, {81, 4, 5, 0}},              //                                          80
+     {1, 8, E4, {82, 4, 5, 0}},              //                                          81
+     {1, 9, D4, {83, 4, 5, 0}},              //                                          82
+     {1, 0, 1, {84, 4, 5, 0}},               //                                          83
+
+     {1, 1, Bflat4, {85, 4, 5, 0}},          //                                          84
+     {1, 1, Bflat4, {86, 4, 5, 0}},          //                                          85
+     {1, 2, A4, {87, 4, 5, 0}},              //                                          86
+     {1, 8, F4, {88, 4, 5, 0}},              //                                          87
+     {1, 4, G4, {89, 4, 5, 0}},              //                                          88
+     {1, 11, F4, {90, 4, 5, 0}},             //                                          89
+     {2, 0, 1, {4, 5, 6, 7}},                //   Last Note Song 2                       90
 
 
 };
@@ -179,13 +209,20 @@ const State FSM[59] =         // CHANGE FSM SIZE!!!
 // Done, click anything means go back to menu
 
 
-////////////////////////////////////////////////////////////////
+/// Song Inits: /////////////////////////////////////////////////////////////
 
-uint8_t song[] = {0, 0, 0, 8, 8, 2, 2, 1, 1, 10, 0, 1, 1, 2, 2, 4, 4, 10, 0, 2, 2, 4, 4, 8, 8, 5, 0, 2, 2, 4, 4, 8, 8, 5, 0, 8, 8, 2, 2, 1, 1, 10, 0, 1, 1, 2, 2, 4, 4, 15, 0};
-uint16_t songLength = 51;
+uint8_t song1[] = {0, 0, 0, 8, 8, 2, 2, 1, 1, 10, 0, 1, 1, 2, 2, 4, 4, 10, 0, 2, 2, 4, 4, 8, 8, 5, 0, 2, 2, 4, 4, 8, 8, 5, 0, 8, 8, 2, 2, 1, 1, 10, 0, 1, 1, 2, 2, 4, 4, 15, 0};
+uint16_t songLength1 = 51;
+Row rowArray1[51];
+
+uint8_t song2[] = {0, 0, 0, 8, 8, 4, 8, 2, 10, 0, 8, 8, 4, 8, 1, 5, 0, 8, 8, 1, 2, 4, 8, 9, 0, 1, 1, 2, 8, 4, 11, 0};
+uint16_t songLength2 = 32;
+Row rowArray2[32];
+
 uint16_t topRow = 0; //topRow is a later note, so higher index
 uint16_t bottomRow = 0;
-Row rowArray[51];
+
+////////////////////////////////////////////////////////////////
 
 //bool needsRedraw;
 uint16_t g6counter = 0;
@@ -417,6 +454,10 @@ void TIMG6_IRQHandler(void)
             g6counter = 0;
             //GPIOB->DOUTTGL31_0 |= (1<<16);
             // Key 1
+
+                    Data = Sensor.In();
+                    Sensor.Save(Data);   // Updates the data and also sets flag within the sensor class
+                    ADCflag = 1;
 
                     uint32_t userInput1 = GPIOB->DIN31_0 & (1<<12);
                     if(userInput1!=0 && risingEdge1 == 0)
@@ -787,6 +828,7 @@ int main(void){ // main1
   LaunchPad_Init();
   DAC5_Init();
   Sound_Init(1,1);
+  Sensor.Init();
   ST7735_InitPrintf();
   ST7735_FillScreen(0xFFFF);            // set screen to black
 
@@ -1048,112 +1090,4 @@ int main(void){ // main1
 void moveKey(){
 
 }
-
-
-
-
-
-// use main2 to observe graphics
-int main2(void){ // main2
-  __disable_irq();
-  PLL_Init(); // set bus speed
-  LaunchPad_Init();
-  ST7735_InitPrintf();
-    //note: if you colors are weird, see different options for
-    // ST7735_InitR(INITR_REDTAB); inside ST7735_InitPrintf()
-  ST7735_FillScreen(ST7735_BLACK);
-  ST7735_DrawBitmap(22, 159, PlayerShip0, 18,8); // player ship bottom
-  ST7735_DrawBitmap(53, 151, Bunker0, 18,5);
-  ST7735_DrawBitmap(42, 159, PlayerShip1, 18,8); // player ship bottom
-  ST7735_DrawBitmap(62, 159, PlayerShip2, 18,8); // player ship bottom
-  ST7735_DrawBitmap(82, 159, PlayerShip3, 18,8); // player ship bottom
-  ST7735_DrawBitmap(0, 9, SmallEnemy10pointA, 16,10);
-  ST7735_DrawBitmap(20,9, SmallEnemy10pointB, 16,10);
-  ST7735_DrawBitmap(40, 9, SmallEnemy20pointA, 16,10);
-  ST7735_DrawBitmap(60, 9, SmallEnemy20pointB, 16,10);
-  ST7735_DrawBitmap(80, 9, SmallEnemy30pointA, 16,10);
-
-  for(uint32_t t=500;t>0;t=t-5){
-    SmallFont_OutVertical(t,104,6); // top left
-    Clock_Delay1ms(50);              // delay 50 msec
-  }
-  ST7735_FillScreen(0x0000);   // set screen to black
-  ST7735_SetCursor(1, 1);
-  ST7735_OutString((char *)"GAME OVER");
-  ST7735_SetCursor(1, 2);
-  ST7735_OutString((char *)"Nice try,");
-  ST7735_SetCursor(1, 3);
-  ST7735_OutString((char *)"Earthling!");
-  ST7735_SetCursor(2, 4);
-  ST7735_OutUDec(1234);
-  while(1){
-  }
-}
-
-// use main3 to test switches and LEDs
-int main3(void){ // main3
-  __disable_irq();
-  PLL_Init(); // set bus speed
-  LaunchPad_Init();
-  Switch_Init(); // initialize switches
-  LED_Init(); // initialize LED
-  while(1){
-    // write code to test switches and LEDs
-   
-  }
-}
-// use main4 to test sound outputs
-int main4(void){ uint32_t last=0,now;
-  __disable_irq();
-  PLL_Init(); // set bus speed
-  LaunchPad_Init();
-  Switch_Init(); // initialize switches
-  LED_Init(); // initialize LED
-  Sound_Init(1,1);  // initialize sound
-  TExaS_Init(ADC0,6,0); // ADC1 channel 6 is PB20, TExaS scope
-  __enable_irq();
-  while(1){
-    now = Switch_In(); // one of your buttons
-    if((last == 0)&&(now == 1)){
-      Sound_Shoot(); // call one of your sounds
-    }
-    if((last == 0)&&(now == 2)){
-      Sound_Killed(); // call one of your sounds
-    }
-    if((last == 0)&&(now == 4)){
-      Sound_Explosion(); // call one of your sounds
-    }
-    if((last == 0)&&(now == 8)){
-      Sound_Fastinvader1(); // call one of your sounds
-    }
-    // modify this to test all your sounds
-  }
-}
-// ALL ST7735 OUTPUT MUST OCCUR IN MAIN
-int main5(void){ // final main
-  __disable_irq();
-  PLL_Init(); // set bus speed
-  LaunchPad_Init();
-  ST7735_InitPrintf();
-    //note: if you colors are weird, see different options for
-    // ST7735_InitR(INITR_REDTAB); inside ST7735_InitPrintf()
-  ST7735_FillScreen(ST7735_BLACK);
-  Sensor.Init(); // PB18 = ADC1 channel 5, slidepot
-  Switch_Init(); // initialize switches
-  LED_Init();    // initialize LED
-  Sound_Init(1,0);  // initialize sound
-  TExaS_Init(0,0,&TExaS_LaunchPadLogicPB27PB26); // PB27 and PB26
-    // initialize interrupts on TimerG12 at 30 Hz
-  //TimerG12_IntArm(80000000/30,2);
-  // initialize all data structures
-  __enable_irq();
-
-  while(1){
-    // wait for semaphore
-       // clear semaphore
-       // update ST7735R
-    // check for end game or level switch
-  }
-}
-
 
