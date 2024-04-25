@@ -37,6 +37,7 @@ Lab9HMain.o: ../Lab9HMain.cpp \
  C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/inc/TExaS.h \
  C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/inc/Timer.h \
  C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/inc/SlidePot.h \
+ C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/inc/DAC5.h \
  C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/PianoTiles/SmallFont.h \
  C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/PianoTiles/LED.h \
  C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/PianoTiles/Switch.h \
@@ -117,6 +118,8 @@ C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/inc/TExaS.h:
 C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/inc/Timer.h:
 
 C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/inc/SlidePot.h:
+
+C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/inc/DAC5.h:
 
 C:/Users/Iyer_/Downloads/MSPM0_ValvanoWare/MSPM0_ValvanoWare/PianoTiles/SmallFont.h:
 

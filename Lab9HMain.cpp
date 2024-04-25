@@ -13,7 +13,7 @@
 #include "../inc/TExaS.h"
 #include "../inc/Timer.h"
 #include "../inc/SlidePot.h"
-//#include "../inc/DAC5.h"
+#include "../inc/DAC5.h"
 #include "SmallFont.h"
 #include "LED.h"
 #include "Switch.h"
@@ -61,81 +61,6 @@ void FSM_Handler();
 
 #define Bflat4 5062 // 493.88 Hz
 #define C5 4778 // 523.25 Hz
-
-
-// Initialize 5-bit DAC, called once
-void DAC5_Init(void){
-// Assumes LaunchPad_Init has been called
-
-    IOMUX->SECCFG.PINCM[PB0INDEX] = 0x00000081;    // Outputs
-    IOMUX->SECCFG.PINCM[PB1INDEX] = 0x00000081;
-    IOMUX->SECCFG.PINCM[PB2INDEX] = 0x00000081;
-    IOMUX->SECCFG.PINCM[PB3INDEX] = 0x00000081;
-    IOMUX->SECCFG.PINCM[PB4INDEX] = 0x00000081;
-
-    //GPIOB->DOE31_0 |= 1 | (1<<1) | (1<<2) | (1<<3) | (1<<4);
-    GPIOB->DOE31_0 |= 0x01F;
-
-
-}
-
-
-// output to DAC5
-// Input: data is 5-bit integer, 0 to 31
-void DAC5_Out(uint32_t data){
-    // write this
-
-//    GPIOB->DOUTCLR31_0 = 31;
-//    GPIOB->DOUTSET31_0 = data;
-    GPIOB->DOUT31_0 = (GPIOB->DOUT31_0 & (~0x1F)) | data;
-
-}
-
-
-
-void Sound_Init(uint32_t period, uint32_t priority){
-
-    SysTick->CTRL = 0x00; // disable during initialization
-    SysTick->LOAD = period-1; // set reload register
-    SCB->SHP[1] = (SCB->SHP[1] & (~0xC0000000)) | priority<<30;
-    SysTick->VAL = 0; // clear count, cause reload
-    SysTick->CTRL = 0x07; // Enable SysTick IRQ and SysTick Timer
-
-}
-
-void Sound_Stop(void){
-  // either set LOAD to 0 or clear bit 1 in CTRL
-
-    SysTick->LOAD = 0;
-
-}
-
-
-void Sound_Start(uint32_t period){
-
-  // set reload value
-  // write any value to VAL, cause reload
-
-    SysTick->CTRL = 0x00; // disable during initialization
-    SysTick->LOAD = period-1; // set reload register
-    SysTick->VAL = 0; // clear count, cause reload
-    SysTick->CTRL = 0x07; // Enable SysTick IRQ and SysTick Timer
-}
-
-// Interrupt service routine
-// Executed every 12.5ns*(period)
-void SysTick_Handler(void){
-  // write this
-  // output one value to DAC
-
-  const uint8_t waveArr[32] = {16,19,22,24,27,28,30,31,31,31,30,28,27,24,22,19,16,13,10,8,5,4,2,1,1,1,2,4,5,8,10,13};
-  static uint32_t soundTime=0;
-  DAC5_Out(waveArr[soundTime]);
-  soundTime = (soundTime+1) & 0x1F; // Cycles
-
-
-}
-
 
 
 ////////////////////////////////////////////////////////////////
@@ -592,7 +517,7 @@ void FSM_Handler() {
                 }
             }
 
-            //Sound_Start(FSM[stateIndex].noteFrequency);
+            Sound_Start(FSM[stateIndex].noteFrequency);
             //OUTPUT SOUND HERE (OR CALL SOMETHING THAT WILL)
         }
 
@@ -708,7 +633,7 @@ void FSM_Handler() {
             }
 
             //OUTPUT SOUND HERE (OR CALL SOMETHING THAT WILL)
-            //Sound_Start(FSM[stateIndex].noteFrequency);
+            Sound_Start(FSM[stateIndex].noteFrequency);
         }
 
 
@@ -833,7 +758,7 @@ void FSM_Handler() {
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-int main7(void){    //mainchina
+int mainchina(void){    //mainchina
     //char l;
   __disable_irq();
   PLL_Init(); // set bus speed
@@ -860,10 +785,10 @@ int main(void){ // main1
   __disable_irq();
   PLL_Init(); // set bus speed
   LaunchPad_Init();
-  //DAC5_Init();
-  //Sound_Init(1,1);
-//  ST7735_InitPrintf();
-//  ST7735_FillScreen(0xFFFF);            // set screen to black
+  DAC5_Init();
+  Sound_Init(1,1);
+  ST7735_InitPrintf();
+  ST7735_FillScreen(0xFFFF);            // set screen to black
 
 //  SysTick->LOAD = 0xFFFFFF;    // max
 //  SysTick->VAL = 0;            // any write to current clears it

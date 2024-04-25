@@ -11,7 +11,8 @@
 // initialize any global variables
 // Initialize the 5 bit DAC
 // This is called once
-//void Sound_Init(void);
+
+void Sound_Init(uint32_t period, uint32_t priority);
 
 //******* Sound_Start ************
 // This function does not output to the DAC. 
@@ -23,10 +24,13 @@
 //        count is the length of the array
 // Output: none
 // special cases: as you wish to implement
-//void Sound_Start(const uint8_t *pt, uint32_t count);
+
+void Sound_Start(uint32_t period);
 
 // following 8 functions do not output to the DAC
 // they configure pointers/counters and initiate the sound by calling Sound_Start
+
+
 void Sound_Shoot(void);
 void Sound_Killed(void);
 void Sound_Explosion(void);
