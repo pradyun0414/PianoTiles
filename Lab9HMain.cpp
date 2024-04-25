@@ -221,6 +221,10 @@ uint8_t song2[] = {0, 0, 0, 8, 8, 4, 8, 2, 10, 0, 8, 8, 4, 8, 1, 5, 0, 8, 8, 1, 
 uint16_t songLength2 = 32;
 Row rowArray2[32];
 
+uint8_t* song;
+uint16_t songLength = 51;
+Row* rowArray;
+
 uint16_t topRow = 0; //topRow is a later note, so higher index
 uint16_t bottomRow = 0;
 
@@ -286,9 +290,13 @@ void generateNewRow(){
 }
 
 void generateRowArray(){
-    for(int i = 0; i < songLength; i++){
-        rowArray[i].initializeRow(song[i], 0);
+    for(int i = 0; i < songLength1; i++){
+        rowArray1[i].initializeRow(song1[i], 0);
     }
+    for(int i = 0; i < songLength2; i++){
+        rowArray2[i].initializeRow(song2[i], 0);
+    }
+
 }
 
 void startGameRows(){
@@ -565,8 +573,7 @@ void FSM_Handler() {
                 }
             }
 
-            if(FSM[stateIndex].noteFrequency != 1)
-            {
+            if(FSM[stateIndex].noteFrequency != 1){
                 Sound_Start(FSM[stateIndex].noteFrequency);
             }
             //OUTPUT SOUND HERE (OR CALL SOMETHING THAT WILL)
@@ -617,6 +624,7 @@ void FSM_Handler() {
 
     else if(FSM[stateIndex].mode==0)
     {
+        Sound_Start(1);
         if(clickedKeys == 4)
         {
             stateIndex = FSM[stateIndex].next[0];
@@ -634,6 +642,18 @@ void FSM_Handler() {
         {
             stateIndex = FSM[stateIndex].next[1];
             switchingMenuState = true;
+
+            if(song == song2){
+                song = song1;
+                rowArray = rowArray1;
+                songLength = songLength1;
+            }
+            else if(song == song1){
+                song = song2;
+                rowArray = rowArray2;
+                songLength = songLength2;
+            }
+
         }
         else if(clickedKeys == 1)
         {
@@ -686,11 +706,10 @@ void FSM_Handler() {
             }
 
             //OUTPUT SOUND HERE (OR CALL SOMETHING THAT WILL)
-            if(FSM[stateIndex].noteFrequency != 1)
-            {
+
+            if(FSM[stateIndex].noteFrequency != 1){
                 Sound_Start(FSM[stateIndex].noteFrequency);
             }
-
         }
 
 
@@ -749,6 +768,7 @@ void FSM_Handler() {
 
     else if(FSM[stateIndex].mode==3)
     {
+        Sound_Start(1);
         if(clickedKeys!=0)
         {
             stateIndex = FSM[stateIndex].next[0];
@@ -890,6 +910,11 @@ int main(void){ // main1
           if(switchingMode){
               switchingMode = false;
               uint32_t curstate = stateIndex;
+
+              song = song1;
+              rowArray = rowArray1;
+              songLength = songLength1;
+
               ST7735_FillScreen(0xbebf);            // set screen to white
               //ST7735_FillScreen(0xFFFF);
               //clear whole screen, draw necessary sprites
