@@ -26,6 +26,13 @@ public:
     static const unsigned short Song1Spanish[];
     static const unsigned short Song2Spanish[];
 
+    static const unsigned short YouWinEnglish[];
+    static const unsigned short YouLoseEnglish[];
+    static const unsigned short YouWinSpanish[];
+    static const unsigned short YouLoseSpanish[];
+
+
+
 
 
 

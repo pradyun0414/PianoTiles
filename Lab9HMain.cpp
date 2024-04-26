@@ -67,6 +67,12 @@ SlidePot Sensor(1832,176); // Calibrated
 uint32_t Reading;        // 12-bit ADC
 uint32_t ADCflag = 0;
 
+uint32_t ADCValues[32];
+uint32_t ADCValuesIndex = 0;
+
+// Score
+
+uint16_t score = 0;
 
 ////////////////////////////////////////////////////////////////
 
@@ -407,7 +413,7 @@ void SysTick_Handler(void){ // called at 11 kHz
 
     const uint8_t wave[32] = {16,19,22,24,27,28,30,31,31,31,30,28,27,24,22,19,16,13,10,8,5,4,2,1,1,1,2,4,5,8,10,13};
     static uint32_t i=0;
-    DAC5_Out((wave[i]*Data)/4095);
+    DAC5_Out((wave[i]*Reading)/4095);
     i = (i+1) & 0x1F; // Cycles
 
 }
@@ -470,9 +476,7 @@ void TIMG6_IRQHandler(void)
             //GPIOB->DOUTTGL31_0 |= (1<<16);
             // Key 1
 
-                    Reading = Sensor.In();
-                    Sensor.Save(Reading);   // Updates the data and also sets flag within the sensor class
-                    ADCflag = 1;
+
 
                     uint32_t userInput1 = GPIOB->DIN31_0 & (1<<12);
                     if(userInput1!=0 && risingEdge1 == 0)
@@ -557,6 +561,25 @@ void TIMG6_IRQHandler(void)
 
                     }
         }
+        ADCValues[ADCValuesIndex] = Sensor.In();
+        ADCValuesIndex++;
+        if(ADCValuesIndex == 32){
+            uint32_t sum = 0;
+            for(uint32_t i = 0; i < 32; i++){
+                sum += ADCValues[i];
+            }
+            uint32_t avgReading = sum/32;
+            if(avgReading > Reading + 50 || (Reading >= 50 && (avgReading < Reading - 50))){
+                Reading = avgReading;
+            }
+            Reading = sum/32;
+            ADCValuesIndex = 0;
+        }
+        //Reading = Sensor.In();
+        Sensor.Save(Reading);   // Updates the data and also sets flag within the sensor class
+        ADCflag = 1;
+
+
     }
 }
 
@@ -586,6 +609,7 @@ void FSM_Handler() {
                 lives--;
             }
             else{
+                score+=100;
 //                Sound_Start(FSM[stateIndex].noteFrequency);
 //                Sound_Stop();
             }
@@ -625,6 +649,7 @@ void FSM_Handler() {
     else if(FSM[stateIndex].mode==0)
     {
         Sound_Start(1);
+        score = 0;
         if(clickedKeys == 4)
         {
             stateIndex = FSM[stateIndex].next[0];
@@ -721,7 +746,7 @@ void FSM_Handler() {
             else{
 //                Sound_Start(FSM[stateIndex].noteFrequency);
 //                Sound_Stop();
-
+                score+=100;
             }
 
             if(lives==0)
@@ -972,6 +997,15 @@ int main(void){ // main1
 
           }
           else{
+              //print score
+              ST7735_SetCursor(1,1);
+              if(language == 0){
+                  printf("Score = %u %%", score/songLength);
+              }
+              else{
+                  printf("Calificar = %u %%", score/songLength);
+              }
+              //printf("SAC=%3u,Center=%4u",SAC,Center);
 
               for(int i = bottomRow; i <= topRow; i++){
                   for(int j = 0; j < 4; j++){
@@ -1005,6 +1039,13 @@ int main(void){ // main1
               }
 
           }
+          ST7735_SetCursor(1,1);
+          if(language == 0){
+              printf("Score = %u %%", score/songLength);
+          }
+          else{
+              printf("Calificar = %u %%", score/songLength);
+          }
           //ST7735_DrawBitmap(0, 20, Sprite::TopBlock, 128, 20);
           //ST7735_DrawBitmap(0, 160, Sprite::BottomBlock, 128, 20);
           for(int i = 3; i > 0; i--){
@@ -1022,16 +1063,31 @@ int main(void){ // main1
               switchingMode = false;
               uint32_t curstate = stateIndex;
               ST7735_FillScreen(0xFFFF);            // set screen to white
-              //ST7735_SetCursor(0,0);
+              ST7735_SetCursor(1,1);
 
               if(curstate == 4 || curstate == 5){
                   //char str[] = "You lose";
-                  ST7735_DrawBitmap(50, 50, Sprite::Heart, 8, 8);
+                  if(language == 0){
+                      ST7735_DrawBitmap(24, 100, Sprite::YouLoseEnglish, 80, 40);
+                      printf("Score = %u %%", score/songLength);
+                  }
+                  else{
+                      ST7735_DrawBitmap(24, 100, Sprite::YouLoseSpanish, 80, 40);
+                      printf("Calificar = %u %%", score/songLength);
+                  }
 
               }
               else{
+                  if(language == 0){
+                      ST7735_DrawBitmap(24, 100, Sprite::YouWinEnglish, 80, 40);
+                      printf("Score = %u %%", score/songLength);
+                  }
+                  else{
+                      ST7735_DrawBitmap(24, 100, Sprite::YouWinSpanish, 80, 40);
+                      printf("Calificar = %u %%", score/songLength);
+                  }
                   //char str[] = "You win";
-                  ST7735_DrawBitmap(50, 50, Sprite::EmptyHeart, 8, 8);
+                  //ST7735_DrawBitmap(50, 50, Sprite::EmptyHeart, 8, 8);
               }
               //clear whole screen, draw necessary sprites
           }
