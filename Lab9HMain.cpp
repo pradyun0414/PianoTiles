@@ -238,7 +238,9 @@ uint16_t bottomRow = 0;
 
 //bool needsRedraw;
 uint16_t g6counter = 0;
-bool switchingMode = true; //needs mode initialization if true
+//bool switchingMode = true; //needs mode initialization if true
+bool startingGame = true; //only used to initialize menu at beginning
+bool switchingToMenu, switchingToGame, switchingToEnd; //communicate between interrupt and main
 bool switchingMenuState = false; //needs to redraw menu when switching menu states
 
 uint32_t startTime,stopTime, Offset, Converttime;
@@ -619,12 +621,14 @@ void FSM_Handler() {
                 if(language==0)
                 {
                     stateIndex = FSM[stateIndex].next[1];
-                    switchingMode = true;
+                    //switchingMode = true;
+                    switchingToEnd = true;
                 }
                 else
                 {
                     stateIndex = FSM[stateIndex].next[2];
-                    switchingMode = true;
+                    //switchingMode = true;
+                    switchingToEnd = true;
                 }
             }
             else
@@ -652,7 +656,9 @@ void FSM_Handler() {
         score = 0;
         if(clickedKeys == 4)
         {
+
             stateIndex = FSM[stateIndex].next[0];
+            switchingMenuState = true;
             if(language == 0)
                 language = 1;
             else if(language==1)
@@ -660,7 +666,6 @@ void FSM_Handler() {
                 language = 0;
             }
             //language = !language;
-            switchingMenuState = true;
 
         }
         else if(clickedKeys == 2)
@@ -683,7 +688,8 @@ void FSM_Handler() {
         else if(clickedKeys == 1)
         {
             stateIndex = FSM[stateIndex].next[2];
-            switchingMode = true;
+            //switchingMode = true;
+            switchingToGame = true;
         }
 
         // Do nothing otherwise (stay in current state)
@@ -721,7 +727,7 @@ void FSM_Handler() {
 
     else if(FSM[stateIndex].mode==2) // MAKE SURE TO ADD CONDITIONAL TO CHECK IF AT BOTTOM !!!!!!!!
     {
-        switchingMode = false;
+        //switchingMode = false;
         uint32_t curstate = stateIndex;
         if(clickedKeys == FSM[stateIndex].outputKeys){
             for(uint8_t i = 0; i < 4; i++){
@@ -754,12 +760,14 @@ void FSM_Handler() {
                 if(language==0)
                 {
                     stateIndex = FSM[curstate].next[0];
-                    switchingMode = true;
+                    //switchingMode = true;
+                    switchingToEnd = true;
                 }
                 else
                 {
                     stateIndex = FSM[curstate].next[1];
-                    switchingMode = true;
+                    //switchingMode = true;
+                    switchingToEnd = true;
                 }
             }
             else
@@ -767,12 +775,14 @@ void FSM_Handler() {
                 if(language==0)
                  {
                      stateIndex = FSM[curstate].next[2];
-                     switchingMode = true;
+                     //switchingMode = true;
+                     switchingToEnd = true;
                  }
                  else
                  {
                      stateIndex = FSM[curstate].next[3];
-                     switchingMode = true;
+                     //switchingMode = true;
+                     switchingToEnd = true;
                  }
             }
 
@@ -797,7 +807,8 @@ void FSM_Handler() {
         if(clickedKeys!=0)
         {
             stateIndex = FSM[stateIndex].next[0];
-            switchingMode = true;
+            //switchingMode = true;
+            switchingToMenu = true;
                 risingEdge1=0;
                 fallingEdge1=0;
                 risingEdge2=0;
@@ -932,8 +943,9 @@ int main(void){ // main1
   while(1){
 
       if(FSM[stateIndex].mode == 0){
-          if(switchingMode){
-              switchingMode = false;
+          if(switchingToMenu || startingGame){
+              startingGame = false;
+              switchingToMenu = false;
               uint32_t curstate = stateIndex;
 
               song = song1;
@@ -989,8 +1001,8 @@ int main(void){ // main1
           }
       }
       else if(FSM[stateIndex].mode == 1){ //initialize if switching mode, otherwise redraw keys
-          if(switchingMode){
-              switchingMode = false;
+          if(switchingToGame){
+              switchingToGame = false;
               startGameRows();
               ST7735_DrawBitmap(0, 160, Sprite::BottomBlock, 128, 20);
               ST7735_DrawBitmap(0, 20, Sprite::TopBlock, 128, 20);
@@ -1000,10 +1012,18 @@ int main(void){ // main1
               //print score
               ST7735_SetCursor(1,1);
               if(language == 0){
-                  printf("Score = %u %%", score/songLength);
+                  //ST7735_OutString((char*) "chinesee");
+                  //char stringeesh[] = "lameesh";
+                  ST7735_DrawString(1, 1, "Score:", 0x0000);
+                  ST7735_SetCursor(7,1);
+                  ST7735_OutUDec(score/songLength, 0x0000);
+                  //printf("Score = %u %%", score/songLength);
               }
               else{
-                  printf("Calificar = %u %%", score/songLength);
+                  ST7735_DrawString(1, 1, "Calificar:", 0x0000);
+                  ST7735_SetCursor(11,1);
+                  ST7735_OutUDec(score/songLength, 0x0000);
+                  //printf("Calificar = %u %%", score/songLength);
               }
               //printf("SAC=%3u,Center=%4u",SAC,Center);
 
@@ -1032,7 +1052,7 @@ int main(void){ // main1
           }
       }
       else if(FSM[stateIndex].mode == 2){ //always try to redraw key and adjust
-          switchingMode = false;
+          //switchingMode = false;
           for(int i = bottomRow; i <= topRow; i++){
               for(int j = 0; j < 4; j++){
                   rowArray[i].getKey(j).redrawKey();
@@ -1041,10 +1061,14 @@ int main(void){ // main1
           }
           ST7735_SetCursor(1,1);
           if(language == 0){
-              printf("Score = %u %%", score/songLength);
+              ST7735_DrawString(1, 1, "Score:", 0x0000);
+              ST7735_SetCursor(7,1);
+              ST7735_OutUDec(score/songLength, 0x0000);
           }
           else{
-              printf("Calificar = %u %%", score/songLength);
+              ST7735_DrawString(1, 1, "Calificar:", 0x0000);
+              ST7735_SetCursor(11,1);
+              ST7735_OutUDec(score/songLength, 0x0000);
           }
           //ST7735_DrawBitmap(0, 20, Sprite::TopBlock, 128, 20);
           //ST7735_DrawBitmap(0, 160, Sprite::BottomBlock, 128, 20);
@@ -1059,8 +1083,8 @@ int main(void){ // main1
           adjustVisible();
       }
       else if(FSM[stateIndex].mode == 3){
-          if(switchingMode){
-              switchingMode = false;
+          if(switchingToEnd){
+              switchingToEnd = false;
               uint32_t curstate = stateIndex;
               ST7735_FillScreen(0xFFFF);            // set screen to white
               ST7735_SetCursor(1,1);
@@ -1069,22 +1093,30 @@ int main(void){ // main1
                   //char str[] = "You lose";
                   if(language == 0){
                       ST7735_DrawBitmap(24, 100, Sprite::YouLoseEnglish, 80, 40);
-                      printf("Score = %u %%", score/songLength);
+                      ST7735_DrawString(1, 1, "Score:", 0x0001);
+                      ST7735_SetCursor(7,1);
+                      ST7735_OutUDec(score/songLength, 0x0001);
                   }
                   else{
                       ST7735_DrawBitmap(24, 100, Sprite::YouLoseSpanish, 80, 40);
-                      printf("Calificar = %u %%", score/songLength);
+                      ST7735_DrawString(1, 1, "Calificar:", 0x0001);
+                      ST7735_SetCursor(11,1);
+                      ST7735_OutUDec(score/songLength, 0x0001);
                   }
 
               }
               else{
                   if(language == 0){
                       ST7735_DrawBitmap(24, 100, Sprite::YouWinEnglish, 80, 40);
-                      printf("Score = %u %%", score/songLength);
+                      ST7735_DrawString(1, 1, "Score:", 0x0001);
+                      ST7735_SetCursor(7,1);
+                      ST7735_OutUDec(score/songLength, 0x0001);
                   }
                   else{
                       ST7735_DrawBitmap(24, 100, Sprite::YouWinSpanish, 80, 40);
-                      printf("Calificar = %u %%", score/songLength);
+                      ST7735_DrawString(1, 1, "Calificar:", 0x0001);
+                      ST7735_SetCursor(11,1);
+                      ST7735_OutUDec(score/songLength, 0x0001);
                   }
                   //char str[] = "You win";
                   //ST7735_DrawBitmap(50, 50, Sprite::EmptyHeart, 8, 8);
